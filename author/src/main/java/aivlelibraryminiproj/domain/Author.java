@@ -53,8 +53,10 @@ public class Author {
 
     //<<< Clean Arch / Port Method
     public void approveAuthor(ApproveAuthorCommand approveAuthorCommand) {
-        //implement business logic here:
+        // 1. 상태를 먼저 변경
+        this.setIsApprove(true);
 
+        // 2. 변경된 상태를 담아 이벤트를 생성 및 발행
         AuthorApproved authorApproved = new AuthorApproved(this);
         authorApproved.publishAfterCommit();
     }
@@ -62,8 +64,10 @@ public class Author {
     //>>> Clean Arch / Port Method
     //<<< Clean Arch / Port Method
     public void rejectAuthor(RejectAuthorCommand rejectAuthorCommand) {
-        //implement business logic here:
+        // 1. 상태를 먼저 변경
+        this.setIsApprove(false);
 
+        // 2. 변경된 상태를 담아 이벤트를 생성 및 발행
         AuthorRejected authorRejected = new AuthorRejected(this);
         authorRejected.publishAfterCommit();
     }

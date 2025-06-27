@@ -12,7 +12,7 @@ import lombok.*;
 public class AuthorRejected extends AbstractEvent {
 
     private Boolean isApprove;
-
+    private Long id; 
     public AuthorRejected(Author aggregate) {
         super(aggregate);
     }
