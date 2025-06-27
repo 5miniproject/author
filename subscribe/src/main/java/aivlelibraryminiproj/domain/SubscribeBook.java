@@ -70,15 +70,9 @@ public class SubscribeBook {
     //<<< Clean Arch / Port Method
     public static void bookSubscriptionFail(PointShorted pointShorted) {
         //implement business logic here:
-
-        /** Example 1:  new item 
         SubscribeBook subscribeBook = new SubscribeBook();
-        repository().save(subscribeBook);
-
         BookSubscriptionFailed bookSubscriptionFailed = new BookSubscriptionFailed(subscribeBook);
         bookSubscriptionFailed.publishAfterCommit();
-        */
-
         /** Example 2:  finding and process
         
 

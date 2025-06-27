@@ -12,6 +12,9 @@ import lombok.*;
 public class BookSubscriptionFailed extends AbstractEvent {
 
     private Long id;
+    private Long subscriberId;
+    private Long bookId;
+    private String title;
 
     public BookSubscriptionFailed(SubscribeBook aggregate) {
         super(aggregate);
