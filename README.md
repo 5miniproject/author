@@ -103,3 +103,4 @@ sudo mv /tmp/eksctl /usr/local/bin
 
 ### 테스트
 김재홍-권한확인
+박재형-권한확인
