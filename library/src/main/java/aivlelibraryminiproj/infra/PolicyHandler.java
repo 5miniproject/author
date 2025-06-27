@@ -27,16 +27,16 @@ public class PolicyHandler {
         value = KafkaProcessor.INPUT,
         condition = "headers['type']=='BookPublished'"
     )
-    public void wheneverBookPublished_BookPublish(
+    public void wheneverBookPublished_bookRegister(
         @Payload BookPublished bookPublished
     ) {
         BookPublished event = bookPublished;
-        System.out.println(
-            "\n\n##### listener BookPublish : " + bookPublished + "\n\n"
-        );
+        // System.out.println(
+        //     "\n\n##### listener BookPublish : " + bookPublished + "\n\n"
+        // );
 
         // Sample Logic //
-        Book.bookPublish(event);
+        Book.bookRegister(event);
     }
 
     @StreamListener(

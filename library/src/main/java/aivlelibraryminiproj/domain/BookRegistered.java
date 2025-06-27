@@ -9,7 +9,7 @@ import lombok.*;
 //<<< DDD / Domain Event
 @Data
 @ToString
-public class BookPublished extends AbstractEvent {
+public class BookRegistered extends AbstractEvent {
 
     private Long id;
     private Long authorId;
@@ -26,11 +26,11 @@ public class BookPublished extends AbstractEvent {
     private String title;
     private String authorName;
 
-    public BookPublished(Book aggregate) {
+    public BookRegistered(Book aggregate) {
         super(aggregate);
     }
 
-    public BookPublished() {
+    public BookRegistered() {
         super();
     }
 }

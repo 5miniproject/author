@@ -14,8 +14,9 @@ import javax.persistence.*;
 import lombok.Data;
 
 @Entity
-@Table(name = "Book_table")
+@Table(name = "books")
 @Data
+@NoArgs
 //<<< DDD / Aggregate Root
 public class Book {
 
@@ -23,31 +24,34 @@ public class Book {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    private Long authorId;
-
+    @Column(nullable = false, unique = true)
     private Long publicationId;
 
-    private String contents;
-
-    private String coverImageUrl;
-
-    private String plot;
-
-    private Long views;
-
-    private String status;
-
-    private String category;
-
-    private Integer subscriptionFee;
-
-    private String plotUrl;
-
-    private Boolean isBest;
-
+    private Long authorId;    
+    private String authorName;
     private String title;
 
-    private String authorName;
+    @Lob
+    private String contents;
+
+    @Lob
+    private String plot; // 요약
+
+    private String plotUrl; // 요약 위치
+    private String coverImageUrl;
+    private String category;
+    private Integer subscriptionFee;
+    private Boolean isBestSeller = false;
+    private Long views = 0L;
+
+    @Enumerated(EnumType.STRING)
+    private BookStatus status;
+
+    public enum BookStatus {
+        PUBLISHED,      // 출간 완료
+        DELETED
+    }
+    // private Boolean isDeleted;
 
     @PostRemove
     public void onPostRemove() {
@@ -71,63 +75,34 @@ public class Book {
         BookReadFailed bookReadFailed = new BookReadFailed(this);
         bookReadFailed.publishAfterCommit();
     }
-
     //>>> Clean Arch / Port Method
 
     //<<< Clean Arch / Port Method
-    public static void bookPublish(BookPublished bookPublished) {
-        //implement business logic here:
+    public static void registerBook(BookPublished bookPublished) {
+        Book book = new Book(bookPublished);
 
-        /** Example 1:  new item 
-        Book book = new Book();
         repository().save(book);
 
-        BookPublished bookPublished = new BookPublished(book);
-        bookPublished.publishAfterCommit();
-        */
-
-        /** Example 2:  finding and process
-        
-
-        repository().findById(bookPublished.get???()).ifPresent(book->{
-            
-            book // do something
-            repository().save(book);
-
-            BookPublished bookPublished = new BookPublished(book);
-            bookPublished.publishAfterCommit();
-
-         });
-        */
+        BookRegistered bookRegistered = new BookRegistered(book);
+        bookRegistered.publishAfterCommit();
 
     }
 
     //>>> Clean Arch / Port Method
     //<<< Clean Arch / Port Method
     public static void archiveBestseller(BookRead bookRead) {
-        //implement business logic here:
-
-        /** Example 1:  new item 
-        Book book = new Book();
-        repository().save(book);
-
-        BestsellerArchived bestsellerArchived = new BestsellerArchived(book);
-        bestsellerArchived.publishAfterCommit();
-        */
-
-        /** Example 2:  finding and process
-        
-
-        repository().findById(bookRead.get???()).ifPresent(book->{
+        repository().findById(bookRead.getBookId()).ifPresent(book->{
             
-            book // do something
-            repository().save(book);
+            if (book.getViews() => 5 && !book.getIsBestSeller()) {
+                book.setIsBestSeller(true);
+
+                repository().save(book);
+            }
 
             BestsellerArchived bestsellerArchived = new BestsellerArchived(book);
             bestsellerArchived.publishAfterCommit();
 
          });
-        */
 
     }
     //>>> Clean Arch / Port Method
