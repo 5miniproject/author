@@ -102,4 +102,4 @@ sudo mv /tmp/eksctl /usr/local/bin
 ```
 
 ### 테스트
-gitpod commit
+김재홍-권한확인
