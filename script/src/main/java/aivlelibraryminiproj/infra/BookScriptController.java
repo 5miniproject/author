@@ -7,8 +7,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 //<<< Clean Arch / Inbound Adaptor
 
@@ -26,10 +24,10 @@ public class BookScriptController {
         produces = "application/json;charset=UTF-8"
     )
     public BookScript scriptPublishRequest(
-        @PathVariable(value = "id") Long id,
-        @RequestBody ScriptPublishRequestCommand scriptPublishRequestCommand,
-        HttpServletRequest request,
-        HttpServletResponse response
+        @PathVariable(value = "id") Long id//,
+        // @RequestBody ScriptPublishRequestCommand scriptPublishRequestCommand,
+        // HttpServletRequest request,
+        // HttpServletResponse response
     ) throws Exception {
         System.out.println(
             "##### /bookScript/scriptPublishRequest  called #####"
@@ -40,8 +38,20 @@ public class BookScriptController {
 
         optionalBookScript.orElseThrow(() -> new Exception("No Entity Found"));
         BookScript bookScript = optionalBookScript.get();
-        bookScript.scriptPublishRequest(scriptPublishRequestCommand);
 
+        // ✅ ScriptPublishRequestCommand 생성 및 채우기
+        ScriptPublishRequestCommand command = new ScriptPublishRequestCommand();
+        command.setId(bookScript.getId());
+        command.setAuthorId(bookScript.getAuthorId());
+        command.setTitle(bookScript.getTitle());
+        command.setContents(bookScript.getContents());
+        command.setAuthorname(bookScript.getAuthorname());
+        command.setStatus(bookScript.getStatus());
+
+        bookScript.scriptPublishRequest(command);
+
+        bookScript.setStatus("REQUESTED");
+        
         bookScriptRepository.save(bookScript);
         return bookScript;
     }
