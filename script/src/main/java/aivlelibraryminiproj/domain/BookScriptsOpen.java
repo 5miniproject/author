@@ -16,7 +16,7 @@ public class BookScriptsOpen {
     //@GeneratedValue(strategy=GenerationType.AUTO)
     private Long id;
 
-    private Integer authorId;
+    private Long authorId;
     private String contents;
     private String status;
     private Date createdAt;
