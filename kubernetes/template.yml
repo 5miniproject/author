@@ -1,0 +1,342 @@
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: author
+  labels:
+    app: author
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: author
+  template:
+    metadata:
+      labels:
+        app: author
+    spec:
+      containers:
+        - name: author
+          image: username/author:latest
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: '/actuator/health'
+              port: 8080
+            initialDelaySeconds: 10
+            timeoutSeconds: 2
+            periodSeconds: 5
+            failureThreshold: 10
+          livenessProbe:
+            httpGet:
+              path: '/actuator/health'
+              port: 8080
+            initialDelaySeconds: 120
+            timeoutSeconds: 2
+            periodSeconds: 5
+            failureThreshold: 5
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: subscribe
+  labels:
+    app: subscribe
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: subscribe
+  template:
+    metadata:
+      labels:
+        app: subscribe
+    spec:
+      containers:
+        - name: subscribe
+          image: username/subscribe:latest
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: '/actuator/health'
+              port: 8080
+            initialDelaySeconds: 10
+            timeoutSeconds: 2
+            periodSeconds: 5
+            failureThreshold: 10
+          livenessProbe:
+            httpGet:
+              path: '/actuator/health'
+              port: 8080
+            initialDelaySeconds: 120
+            timeoutSeconds: 2
+            periodSeconds: 5
+            failureThreshold: 5
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: point
+  labels:
+    app: point
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: point
+  template:
+    metadata:
+      labels:
+        app: point
+    spec:
+      containers:
+        - name: point
+          image: username/point:latest
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: '/actuator/health'
+              port: 8080
+            initialDelaySeconds: 10
+            timeoutSeconds: 2
+            periodSeconds: 5
+            failureThreshold: 10
+          livenessProbe:
+            httpGet:
+              path: '/actuator/health'
+              port: 8080
+            initialDelaySeconds: 120
+            timeoutSeconds: 2
+            periodSeconds: 5
+            failureThreshold: 5
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: script
+  labels:
+    app: script
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: script
+  template:
+    metadata:
+      labels:
+        app: script
+    spec:
+      containers:
+        - name: script
+          image: username/script:latest
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: '/actuator/health'
+              port: 8080
+            initialDelaySeconds: 10
+            timeoutSeconds: 2
+            periodSeconds: 5
+            failureThreshold: 10
+          livenessProbe:
+            httpGet:
+              path: '/actuator/health'
+              port: 8080
+            initialDelaySeconds: 120
+            timeoutSeconds: 2
+            periodSeconds: 5
+            failureThreshold: 5
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: library
+  labels:
+    app: library
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: library
+  template:
+    metadata:
+      labels:
+        app: library
+    spec:
+      containers:
+        - name: library
+          image: username/library:latest
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: '/actuator/health'
+              port: 8080
+            initialDelaySeconds: 10
+            timeoutSeconds: 2
+            periodSeconds: 5
+            failureThreshold: 10
+          livenessProbe:
+            httpGet:
+              path: '/actuator/health'
+              port: 8080
+            initialDelaySeconds: 120
+            timeoutSeconds: 2
+            periodSeconds: 5
+            failureThreshold: 5
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: serviceai
+  labels:
+    app: serviceai
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: serviceai
+  template:
+    metadata:
+      labels:
+        app: serviceai
+    spec:
+      containers:
+        - name: serviceai
+          image: username/serviceai:latest
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: '/actuator/health'
+              port: 8080
+            initialDelaySeconds: 10
+            timeoutSeconds: 2
+            periodSeconds: 5
+            failureThreshold: 10
+          livenessProbe:
+            httpGet:
+              path: '/actuator/health'
+              port: 8080
+            initialDelaySeconds: 120
+            timeoutSeconds: 2
+            periodSeconds: 5
+            failureThreshold: 5
+
+
+---
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: author
+  labels:
+    app: author
+spec:
+  ports:
+    - port: 8080
+      targetPort: 8080
+  selector:
+    app: author
+
+
+---
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: subscribe
+  labels:
+    app: subscribe
+spec:
+  ports:
+    - port: 8080
+      targetPort: 8080
+  selector:
+    app: subscribe
+
+
+---
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: point
+  labels:
+    app: point
+spec:
+  ports:
+    - port: 8080
+      targetPort: 8080
+  selector:
+    app: point
+
+
+---
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: script
+  labels:
+    app: script
+spec:
+  ports:
+    - port: 8080
+      targetPort: 8080
+  selector:
+    app: script
+
+
+---
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: library
+  labels:
+    app: library
+spec:
+  ports:
+    - port: 8080
+      targetPort: 8080
+  selector:
+    app: library
+
+
+---
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: serviceai
+  labels:
+    app: serviceai
+spec:
+  ports:
+    - port: 8080
+      targetPort: 8080
+  selector:
+    app: serviceai
+

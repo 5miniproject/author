@@ -1,0 +1,100 @@
+server:
+  port: 8088
+
+---
+
+spring:
+  profiles: default
+  cloud:
+    gateway:
+#<<< API Gateway / Routes
+      routes:
+        - id: author
+          uri: http://localhost:8082
+          predicates:
+            - Path=/authors/**, /ebookStatisticsViews/**
+        - id: subscribe
+          uri: http://localhost:8083
+          predicates:
+            - Path=/subscribers/**, /subscribeBooks/**, /subscriptionOpens/**, /checkBooks/**
+        - id: point
+          uri: http://localhost:8084
+          predicates:
+            - Path=/points/**, 
+        - id: script
+          uri: http://localhost:8085
+          predicates:
+            - Path=/bookScripts/**, /bookScriptsOpens/**
+        - id: library
+          uri: http://localhost:8086
+          predicates:
+            - Path=/books/**, /checkSubsciptionPermissons/**
+        - id: serviceai
+          uri: http://localhost:8087
+          predicates:
+            - Path=/publications/**, 
+        - id: frontend
+          uri: http://localhost:8080
+          predicates:
+            - Path=/**
+#>>> API Gateway / Routes
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins:
+              - "*"
+            allowedMethods:
+              - "*"
+            allowedHeaders:
+              - "*"
+            allowCredentials: true
+
+
+---
+
+spring:
+  profiles: docker
+  cloud:
+    gateway:
+      routes:
+        - id: author
+          uri: http://author:8080
+          predicates:
+            - Path=/authors/**, 
+        - id: subscribe
+          uri: http://subscribe:8080
+          predicates:
+            - Path=/subscribers/**, /subscribeBooks/**, 
+        - id: point
+          uri: http://point:8080
+          predicates:
+            - Path=/points/**, 
+        - id: script
+          uri: http://script:8080
+          predicates:
+            - Path=/bookScripts/**, 
+        - id: library
+          uri: http://library:8080
+          predicates:
+            - Path=/books/**, 
+        - id: serviceai
+          uri: http://serviceai:8080
+          predicates:
+            - Path=/publications/**, 
+        - id: frontend
+          uri: http://frontend:8080
+          predicates:
+            - Path=/**
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins:
+              - "*"
+            allowedMethods:
+              - "*"
+            allowedHeaders:
+              - "*"
+            allowCredentials: true
+
+server:
+  port: 8080
