@@ -90,6 +90,57 @@
 			<version>${cucumber.version}</version>
 			<scope>test</scope>
 		</dependency>
+
+		<!-- OpenAI HTTP 호출용 -->
+		<dependency>
+			<groupId>com.squareup.okhttp3</groupId>
+			<artifactId>okhttp</artifactId>
+			<version>4.12.0</version>
+		</dependency>
+
+		<!-- JSON 처리 -->
+		<!-- Jackson Core -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-core</artifactId>
+			<version>2.10.0</version> <!-- Spring Boot 2.3.1에 맞는 안정된 버전 -->
+		</dependency>
+
+		<!-- Jackson Databind -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>2.10.0</version>
+		</dependency>
+
+		<!-- Jackson Annotations -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-annotations</artifactId>
+			<version>2.10.0</version>
+		</dependency>
+
+		<!-- ePub 생성 라이브러리 -->
+		<!-- <dependency>
+			<groupId>nl.siegmann.epublib</groupId>
+			<artifactId>epublib-core</artifactId>
+			<version>3.0.1</version>
+		</dependency> -->
+
+		<!-- pdf -->
+		<dependency>
+			<groupId>org.apache.pdfbox</groupId>
+			<artifactId>pdfbox</artifactId>
+			<version>2.0.29</version>
+		</dependency>
+
+		<!-- 파일 IO 유틸 (선택) -->
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.11.0</version>
+		</dependency>
+
 	</dependencies>
 
 	<dependencyManagement>

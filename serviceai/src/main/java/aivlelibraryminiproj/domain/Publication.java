@@ -1,6 +1,8 @@
 package aivlelibraryminiproj.domain;
 
 import aivlelibraryminiproj.ServiceaiApplication;
+import aivlelibraryminiproj.ai.ApplicationContextProvider;
+import aivlelibraryminiproj.ai.OpenAiService;
 import aivlelibraryminiproj.domain.BookCoverImagePlotRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDate;
@@ -70,37 +72,65 @@ public class Publication {
     }
 
     //>>> Clean Arch / Port Method
-
     //<<< Clean Arch / Port Method
     public static void publicationRegistration(
         BookPublishRequested bookPublishRequested
     ) {
-        //implement business logic here:
-
-        /** Example 1:  new item 
         Publication publication = new Publication();
+        publication.setAuthorId(bookPublishRequested.getAuthorId());
+        publication.setAuthorname(bookPublishRequested.getAuthorname());
+        publication.setScriptId(bookPublishRequested.getId());
+        publication.setTitle(bookPublishRequested.getTitle());
+        publication.setContents(bookPublishRequested.getContents());
+        publication.setStatus("이미지 생성 전");
         repository().save(publication);
 
         BookCoverImagePlotRequest bookCoverImagePlotRequest = new BookCoverImagePlotRequest(publication);
         bookCoverImagePlotRequest.publishAfterCommit();
-        */
+    }
 
-        /** Example 2:  finding and process
-        
+    //>>> Clean Arch / Port Method
+    //<<< Clean Arch / Port Method
+    public static void BookCoverImagePlotCompleted(
+        BookCoverImagePlotRequest bookCoverImagePlotRequest
+    ) {
 
-        repository().findById(bookPublishRequested.get???()).ifPresent(publication->{
+        repository().findById(bookCoverImagePlotRequest.getId()).ifPresent(publication->{
             
-            publication // do something
-            repository().save(publication);
+            try{
+                // 1. AI에게 줄거리와 카테고리 요청
+                Map<String, String> result = aiService().generatePlotAndCategory(bookCoverImagePlotRequest.getTitle(), 
+                                                                                    bookCoverImagePlotRequest.getContents());
+                String plot = result.get("plot");
+                String category = result.get("category");
 
-            BookCoverImagePlotRequest bookCoverImagePlotRequest = new BookCoverImagePlotRequest(publication);
-            bookCoverImagePlotRequest.publishAfterCommit();
+                // 2. 표지 이미지 생성
+                byte[] coverImageBytes = aiService().generateCoverImage("책 제목: " + bookCoverImagePlotRequest.getTitle() 
+                                                                        + "\n내용: " + bookCoverImagePlotRequest.getContents());
 
-         });
-        */
+                // 3. 줄거리 pdf와 이미지 파일로 저장
+                String baseDir = "/workspace/library_project/files";
+                String plotUrl = aiService().saveTextAsPdf(plot, baseDir + bookCoverImagePlotRequest.getId() + "_plot.pdf");
+                String coverImageUrl = aiService().saveBytesToFile(coverImageBytes, baseDir + bookCoverImagePlotRequest.getId() + "_cover.jpg");
+
+                publication.setPlotUrl(plotUrl);
+                publication.setCoverImageUrl(coverImageUrl);
+                publication.setCategory(category);
+                publication.setSubscriptionFee(10);
+
+                repository().save(publication);
+            }catch(Exception e){
+                e.printStackTrace();
+            }
+            
+
+        });
 
     }
-    //>>> Clean Arch / Port Method
+
+    private static OpenAiService aiService() {
+        return ApplicationContextProvider.getBean(OpenAiService.class);
+    }
 
 }
 //>>> DDD / Aggregate Root

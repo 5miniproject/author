@@ -40,5 +40,18 @@ public class PolicyHandler {
         // Sample Logic //
         Publication.publicationRegistration(event);
     }
+
+    @StreamListener(
+        value = KafkaProcessor.INPUT,
+        condition = "headers['type']=='BookCoverImagePlotRequest'"
+    )
+    public void wheneverBookCoverImagePlotRequest_BookCoverImagePlotCompleted(
+        @Payload BookCoverImagePlotRequest bookCoverImagePlotRequest
+    ) {
+        BookCoverImagePlotRequest event = bookCoverImagePlotRequest;
+        System.out.println("\n\n##### listener BookCoverImagePlotCompleted : " + event + "\n\n");
+
+        Publication.BookCoverImagePlotCompleted(event);
+    }
 }
 //>>> Clean Arch / Inbound Adaptor
