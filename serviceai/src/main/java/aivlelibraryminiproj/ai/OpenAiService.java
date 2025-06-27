@@ -10,6 +10,7 @@ import java.nio.file.StandardOpenOption;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,7 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.font.PDType0Font;
 
 @Service
 public class OpenAiService {
@@ -31,7 +33,11 @@ public class OpenAiService {
     private final String chatUrl = "https://api.openai.com/v1/chat/completions";
     private final String imageUrl = "https://api.openai.com/v1/images/generations";
 
-    private final OkHttpClient client = new OkHttpClient();
+    private final OkHttpClient client = new OkHttpClient.Builder()
+                                        .connectTimeout(30, TimeUnit.SECONDS)
+                                        .writeTimeout(30, TimeUnit.SECONDS)
+                                        .readTimeout(60, TimeUnit.SECONDS)
+                                        .build();
     private final ObjectMapper mapper = new ObjectMapper();
 
     public OpenAiService(@Value("${openai.api-key}") String apiKey) {
@@ -46,7 +52,7 @@ public class OpenAiService {
     public Map<String, String> generatePlotAndCategory(String title, String content) throws IOException {
         String prompt = String.format(
                             "너는 책 원고 내용을 보고 다음 JSON 형식으로 줄거리(plot)와 카테고리(category)를 알려주는 AI야.\n" +
-                            "JSON 예시: {\"plot\": \"줄거리 내용\", \"category\": \"장르\"}\n" +
+                            "JSON 예시: {\"plot\": \"줄거리 내용(10줄 이내)\", \"category\": \"장르(소설, 에세이, 인문, 경제, 만화 중 선택)\"}\n" +
                             "다음 내용을 보고 알려줘:\n" +
                             "제목: %s\n" +
                             "내용: %s",
@@ -85,12 +91,18 @@ public class OpenAiService {
         }
     }
 
-    /**
-     * AI 이미지 생성 API 호출
-     * prompt: 표지 이미지 생성용 텍스트 (예: "책 제목: ~ 내용: ~")
-     * 리턴: 이미지 바이트 배열
-     */
-    public byte[] generateCoverImage(String prompt) throws IOException {
+    public byte[] generateCoverImage(String title, String author, String content, String category) throws IOException {
+        String prompt = String.format(
+                            "당신은 책 표지 이미지를 디자인하는 AI입니다.\n" +
+                            "아래의 정보를 참고하여 적절한 표지 이미지를 생성해 주세요. 꼭 저자의 이름도 넣어주세요.\n\n" +
+                            "■ 제목: %s\n" +
+                            "■ 저자: %s\n" +
+                            "■ 내용 요약: %s\n" +
+                            "■ 도서 분류: %s\n\n" +
+                            "책의 분위기와 주제를 시각적으로 잘 표현해 주세요. 현실적인 일러스트 스타일로 부탁드립니다.",
+                            title, author, content, category
+                        );
+
         Map<String, Object> body = Map.of(
                 "prompt", prompt,
                 "n", 1,
@@ -138,7 +150,11 @@ public class OpenAiService {
 
             try (PDPageContentStream contentStream = new PDPageContentStream(document, page)) {
                 contentStream.beginText();
-                contentStream.setFont(PDType1Font.HELVETICA, 12);
+
+                // 한글 지원 폰트 로드 (예: NanumGothic.ttf 경로 지정)
+                PDType0Font font = PDType0Font.load(document, new File("/workspace/library_project/serviceai/src/main/resources/NanumGothic.ttf"));
+                contentStream.setFont(font, 12);
+
                 contentStream.setLeading(14.5f);
                 contentStream.newLineAtOffset(25, 700);
 

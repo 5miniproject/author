@@ -99,24 +99,24 @@ public class Publication {
             
             try{
                 // 1. AI에게 줄거리와 카테고리 요청
-                Map<String, String> result = aiService().generatePlotAndCategory(bookCoverImagePlotRequest.getTitle(), 
-                                                                                    bookCoverImagePlotRequest.getContents());
+                Map<String, String> result = aiService().generatePlotAndCategory(publication.getTitle(), publication.getContents());
                 String plot = result.get("plot");
                 String category = result.get("category");
 
                 // 2. 표지 이미지 생성
-                byte[] coverImageBytes = aiService().generateCoverImage("책 제목: " + bookCoverImagePlotRequest.getTitle() 
-                                                                        + "\n내용: " + bookCoverImagePlotRequest.getContents());
+                byte[] coverImageBytes = aiService().generateCoverImage(publication.getTitle(), publication.getAuthorname(), 
+                                                                        publication.getContents(), category);
 
                 // 3. 줄거리 pdf와 이미지 파일로 저장
-                String baseDir = "/workspace/library_project/files";
-                String plotUrl = aiService().saveTextAsPdf(plot, baseDir + bookCoverImagePlotRequest.getId() + "_plot.pdf");
-                String coverImageUrl = aiService().saveBytesToFile(coverImageBytes, baseDir + bookCoverImagePlotRequest.getId() + "_cover.jpg");
+                String baseDir = "/workspace/library_project/files/";
+                String plotUrl = aiService().saveTextAsPdf(plot, baseDir + publication.getId() + "_plot.pdf");
+                String coverImageUrl = aiService().saveBytesToFile(coverImageBytes, baseDir + publication.getId() + "_cover.jpg");
 
                 publication.setPlotUrl(plotUrl);
                 publication.setCoverImageUrl(coverImageUrl);
                 publication.setCategory(category);
                 publication.setSubscriptionFee(10);
+                publication.setStatus("이미지/줄거리 생성완료");
 
                 repository().save(publication);
             }catch(Exception e){
