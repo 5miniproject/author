@@ -5,11 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import aivlelibraryminiproj.LibraryApplication;
 import javax.persistence.*;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "books")
 @Data
-// @NoArgs
+@NoArgsConstructor
 //<<< DDD / Aggregate Root
 public class Book {
 
@@ -39,6 +40,7 @@ public class Book {
     private Integer subscriptionFee;
     private Boolean isBestSeller = false;
     private Long views = 0L;
+    private Long subscriptionCount = 0L;
 
     @Enumerated(EnumType.STRING)
     private BookStatus status;
@@ -49,61 +51,90 @@ public class Book {
     }
     // private Boolean isDeleted;
 
-    public static BookRepository repository() {
-        BookRepository bookRepository = LibraryApplication.applicationContext.getBean(
-            BookRepository.class
-        );
-        return bookRepository;
+    // 비즈니스 로직 1. 도서 등록 (생성자 사용)
+    public Book(BookPublished bookPublished) {
+        this.publicationId = bookPublished.getPublicationId();
+        this.authorId = bookPublished.getAuthorId();
+        this.authorName = bookPublished.getAuthorName();
+        this.title = bookPublished.getTitle();
+        this.contents = bookPublished.getContents();
+        this.plot = bookPublished.getPlot();
+        this.plotUrl = bookPublished.getPlotUrl();
+        this.coverImageUrl = bookPublished.getCoverImageUrl();
+        this.category = bookPublished.getCategory();
+        this.subscriptionFee = bookPublished.getSubscriptionFee();
+        this.status = BookStatus.REGISTERED;
     }
 
-   public static void registerBook(BookPublished bookPublished) {
-        Book book = new Book();
-
-        book.setPublicationId(bookPublished.getId());
-        book.setAuthorId(bookPublished.getAuthorId());
-        book.setAuthorName(bookPublished.getAuthorName());
-        book.setTitle(bookPublished.getTitle());
-        book.setContents(bookPublished.getContents());
-        book.setPlot(bookPublished.getPlot());
-        book.setPlotUrl(bookPublished.getPlotUrl());
-        book.setCoverImageUrl(bookPublished.getCoverImageUrl());
-        book.setCategory(bookPublished.getCategory());
-        book.setSubscriptionFee(bookPublished.getSubscriptionFee());
-        book.setStatus(BookStatus.valueOf("REGISTERED"));
-
-        repository().save(book);
-
-        BookRegistered bookRegistered = new BookRegistered(book);
+    @PostPersist
+    public void onPostPersist() {
+        BookRegistered bookRegistered = new BookRegistered(this);
         bookRegistered.publishAfterCommit();
-   }
+    }
 
-   public static void archiveBestSeller(BookRead bookRead) {
-        if (bookRead.getViews() < 5) { //  || this.getIsBestSeller() == true
-            return;
-        }
+    // 비즈니스 로직 2. 구독 수 증가 및 베스트셀러 선정
+    public void increaseCountAndCheckBestseller() {
+        this.subscriptionCount++;
 
-        repository().findById(bookRead.getId()).ifPresentOrElse(book -> {
-            book.setIsBestSeller(true);
-            repository().save(book);
+        if (this.subscriptionCount >= 5 && !this.isBestSeller) {
+            this.isBestSeller = true;
 
-            BestSellerArchived bestSellerArchived = new BestSellerArchived(book);
+            BestSellerArchived bestSellerArchived = new BestSellerArchived(this);
             bestSellerArchived.publishAfterCommit();
-        }, () -> {
-            throw new RuntimeException("\n\n------ 대상을 찾을 수 없습니다. ------\n\n");
         }
-        );
-   }
+    }
 
-   @PostUpdate
-   public void onPostUpdate() {
-        BookRead bookRead = new BookRead();
+    // 비즈니스 로직 3. 구독 취소 및 베스트셀러 취소
+    public void decreaseCountAndCheckBestseller() {
+        // 1. 구독 횟수가 0보다 클 때만 감소
+        if (this.subscriptionCount > 0) {
+            this.subscriptionCount--;
+        }
+
+        // 2. 구독 횟수가 5회 미만이 되고, 현재 베스트셀러 상태일 경우
+        if (this.subscriptionCount < 5 && this.isBestSeller) {        
+            this.isBestSeller = false;
+
+            BestSellerCancelled bestSellerCancelled = new BestSellerCancelled(this);
+            bestSellerCancelled.publishAfterCommit();
+        }
+    }
+    
+    //<<< Clean Arch / Port Method
+    public void readBook(ReadBookCommand readBookCommand) {
+        
+
+        BookRead bookRead = new BookRead(this);
         bookRead.publishAfterCommit();
-   }
+    }
+    //>>> Clean Arch / Port Method
+    
+    // @PostUpdate
+    // public void onPostUpdate() {
+    //     BookRead bookRead = new BookRead();
+    //     bookRead.publishAfterCommit();
+    // }
 
+    //<<< Clean Arch / Port Method
+    public void deleteBook(DeleteBookCommand deleteBookCommand) {
+        
+
+        BookDeleted bookDeleted = new BookDeleted(this);
+        bookDeleted.publishAfterCommit();
+    }
+    //>>> Clean Arch / Port Method
+    
     @PreRemove
     public void onPreRemove() {
         BookDeleted bookDeleted = new BookDeleted(this);
         bookDeleted.publishAfterCommit();
     }
+
+    // public static BookRepository repository() {
+    //     BookRepository bookRepository = LibraryApplication.applicationContext.getBean(
+    //         BookRepository.class
+    //     );
+    //     return bookRepository;
+    // }
 }
 //>>> DDD / Aggregate Root

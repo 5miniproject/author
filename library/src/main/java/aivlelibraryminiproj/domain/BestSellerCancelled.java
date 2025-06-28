@@ -8,15 +8,15 @@ import lombok.*;
 //<<< DDD / Domain Event
 @Data
 @ToString
-public class BestSellerArchived extends AbstractEvent {
+public class BestSellerCancelled extends AbstractEvent {
     private Long bookId;
     private Boolean isBestSeller;
 
-    public BestSellerArchived(Book aggregate) {
+    public BestSellerCancelled(Book aggregate) {
         super(aggregate);
     }
 
-    public BestSellerArchived() {
+    public BestSellerCancelled() {
         super();
     }
 }
