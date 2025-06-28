@@ -27,7 +27,7 @@ public class PolicyHandler {
         value = KafkaProcessor.INPUT,
         condition = "headers['type']=='BookPublished'"
     )
-    public void wheneverBookPublished_bookRegister(
+    public void wheneverBookPublished_RegisterBook(
         @Payload BookPublished bookPublished
     ) {
         BookPublished event = bookPublished;
@@ -36,25 +36,21 @@ public class PolicyHandler {
         // );
 
         // Sample Logic //
-        Book.bookRegister(event);
+        Book.registerBook(event);
     }
 
     @StreamListener(
         value = KafkaProcessor.INPUT,
         condition = "headers['type']=='BookRead'"
     )
-    public void wheneverBookRead_ArchiveBestseller(@Payload BookRead bookRead) {
+    public void wheneverBookRead_ArchiveBestSeller(@Payload BookRead bookRead) {
         BookRead event = bookRead;
         System.out.println(
             "\n\n##### listener ArchiveBestseller : " + bookRead + "\n\n"
         );
-
-        // Comments //
-        //When 조회수가 5 이상이 되면,
-        // Then 베스트 셀러로 선정
-
+        
         // Sample Logic //
-        Book.archiveBestseller(event);
+        Book.archiveBestSeller(event);
     }
 }
 //>>> Clean Arch / Inbound Adaptor

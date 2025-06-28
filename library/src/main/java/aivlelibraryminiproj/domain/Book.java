@@ -1,22 +1,15 @@
 package aivlelibraryminiproj.domain;
 
-import aivlelibraryminiproj.LibraryApplication;
-import aivlelibraryminiproj.domain.BestsellerArchived;
-import aivlelibraryminiproj.domain.BookDeleted;
-import aivlelibraryminiproj.domain.BookPublished;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.time.LocalDate;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+
+import aivlelibraryminiproj.LibraryApplication;
 import javax.persistence.*;
 import lombok.Data;
 
 @Entity
 @Table(name = "books")
 @Data
-@NoArgs
+// @NoArgs
 //<<< DDD / Aggregate Root
 public class Book {
 
@@ -26,6 +19,9 @@ public class Book {
 
     @Column(nullable = false, unique = true)
     private Long publicationId;
+
+    // @OneToOne
+    // Publication publication;
 
     private Long authorId;    
     private String authorName;
@@ -48,16 +44,10 @@ public class Book {
     private BookStatus status;
 
     public enum BookStatus {
-        PUBLISHED,      // 출간 완료
+        REGISTERED,      
         DELETED
     }
     // private Boolean isDeleted;
-
-    @PostRemove
-    public void onPostRemove() {
-        BookDeleted bookDeleted = new BookDeleted(this);
-        bookDeleted.publishAfterCommit();
-    }
 
     public static BookRepository repository() {
         BookRepository bookRepository = LibraryApplication.applicationContext.getBean(
@@ -66,46 +56,54 @@ public class Book {
         return bookRepository;
     }
 
-    //<<< Clean Arch / Port Method
-    public void readBook(ReadBookCommand readBookCommand) {
-        //implement business logic here:
+   public static void registerBook(BookPublished bookPublished) {
+        Book book = new Book();
 
-        BookRead bookRead = new BookRead(this);
-        bookRead.publishAfterCommit();
-        BookReadFailed bookReadFailed = new BookReadFailed(this);
-        bookReadFailed.publishAfterCommit();
-    }
-    //>>> Clean Arch / Port Method
-
-    //<<< Clean Arch / Port Method
-    public static void registerBook(BookPublished bookPublished) {
-        Book book = new Book(bookPublished);
+        book.setPublicationId(bookPublished.getId());
+        book.setAuthorId(bookPublished.getAuthorId());
+        book.setAuthorName(bookPublished.getAuthorName());
+        book.setTitle(bookPublished.getTitle());
+        book.setContents(bookPublished.getContents());
+        book.setPlot(bookPublished.getPlot());
+        book.setPlotUrl(bookPublished.getPlotUrl());
+        book.setCoverImageUrl(bookPublished.getCoverImageUrl());
+        book.setCategory(bookPublished.getCategory());
+        book.setSubscriptionFee(bookPublished.getSubscriptionFee());
+        book.setStatus(BookStatus.valueOf("REGISTERED"));
 
         repository().save(book);
 
         BookRegistered bookRegistered = new BookRegistered(book);
         bookRegistered.publishAfterCommit();
+   }
 
+   public static void archiveBestSeller(BookRead bookRead) {
+        if (bookRead.getViews() < 5) { //  || this.getIsBestSeller() == true
+            return;
+        }
+
+        repository().findById(bookRead.getId()).ifPresentOrElse(book -> {
+            book.setIsBestSeller(true);
+            repository().save(book);
+
+            BestSellerArchived bestSellerArchived = new BestSellerArchived(book);
+            bestSellerArchived.publishAfterCommit();
+        }, () -> {
+            throw new RuntimeException("\n\n------ 대상을 찾을 수 없습니다. ------\n\n");
+        }
+        );
+   }
+
+   @PostUpdate
+   public void onPostUpdate() {
+        BookRead bookRead = new BookRead();
+        bookRead.publishAfterCommit();
+   }
+
+    @PreRemove
+    public void onPreRemove() {
+        BookDeleted bookDeleted = new BookDeleted(this);
+        bookDeleted.publishAfterCommit();
     }
-
-    //>>> Clean Arch / Port Method
-    //<<< Clean Arch / Port Method
-    public static void archiveBestseller(BookRead bookRead) {
-        repository().findById(bookRead.getBookId()).ifPresent(book->{
-            
-            if (book.getViews() => 5 && !book.getIsBestSeller()) {
-                book.setIsBestSeller(true);
-
-                repository().save(book);
-            }
-
-            BestsellerArchived bestsellerArchived = new BestsellerArchived(book);
-            bestsellerArchived.publishAfterCommit();
-
-         });
-
-    }
-    //>>> Clean Arch / Port Method
-
 }
 //>>> DDD / Aggregate Root
