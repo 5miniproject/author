@@ -7,39 +7,67 @@ import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 //<<< Clean Arch / Inbound Adaptor
-
 @RestController
-// @RequestMapping(value="/books")
+@RequestMapping(value="/books")
 @Transactional
 public class BookController {
 
-    @Autowired
-    BookRepository bookRepository;
+    // 1. 필드 주입
+    // @Autowired
+    // BookRepository bookRepository;
 
-    @RequestMapping(
-        value = "/books/{id}/readbook",
-        method = RequestMethod.PUT,
-        produces = "application/json;charset=UTF-8"
-    )
+    // 2. 생성자 주입 -> 강력 권장
+    private final BookRepository bookRepository;
+
+    @Autowired
+    public BookController(BookRepository bookRepository) {
+        this.bookRepository = bookRepository;
+    }
+
+    // @RequestMapping(
+    //     value = "/{id}/read",
+    //     method = RequestMethod.GET,
+    //     produces = "application/json;charset=UTF-8"
+    // )
+    /* GET은 안전성과 멱등성을 무조건 보장해야함
+    이 커맨드는 BookRead라는 이벤트를 발행함 -> 이벤트 발행은 명백한 상태 변경임
+    단순 조회가 아닌 행위를 수행하고 있으므로 PUT
+    */
+    @PutMapping(value = "/{id}/read") 
     public Book readBook(
         @PathVariable(value = "id") Long id,
         @RequestBody ReadBookCommand readBookCommand,
         HttpServletRequest request,
         HttpServletResponse response
     ) throws Exception {
-        System.out.println("##### /book/readBook  called #####");
-        Optional<Book> optionalBook = bookRepository.findById(id);
+        System.out.println("##### /book/read called #####");
+        // 1. Repository를 통해 애그리거트 조회
+        Book book = bookRepository.findById(id).orElseThrow(() -> new Exception("해당 ID의 책을 찾을 수 없습니다."));
 
-        optionalBook.orElseThrow(() -> new Exception("No Entity Found"));
-        Book book = optionalBook.get();
+        // 2. 애그리거트의 비즈니스 메서드 호출
         book.readBook(readBookCommand);
 
+        // 3. 애그리거트 상태 저장
         bookRepository.save(book);
+
         return book;
+    }
+
+    // 삭제는 보통 주체의 정보(ID 등) 외에 추가 데이터가 필요 없으니 DTO 생략 (DeleteBookCommand 필요 X)
+    @DeleteMapping(value = "/{id}")
+    public void deleteBook(@PathVariable(value = "id") Long id) throws Exception {
+        System.out.println("##### /book/delete called #####");
+
+        Book book = bookRepository.findById(id).orElseThrow(() -> new Exception("삭제하려는 책을 찾을 수 업습니다."));
+
+        // hard delete: 물리적으로 DB에서 삭제하기
+        bookRepository.delete(book);
+
+        // soft delete: DB에서 삭제하는 게 아니라 상태만 변경
+        // book.deleteBook();
+        // bookRepository.save(book);
     }
 }
 //>>> Clean Arch / Inbound Adaptor

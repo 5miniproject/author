@@ -6,11 +6,13 @@ import aivlelibraryminiproj.LibraryApplication;
 import javax.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Where;
 
 @Entity
 @Table(name = "books")
 @Data
 @NoArgsConstructor
+@Where(clause = "status != 'DELETED'") // soft delete의 경우 findAll하면 다 찾아지는 것 방지
 //<<< DDD / Aggregate Root
 public class Book {
 
@@ -18,7 +20,7 @@ public class Book {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    // @Column(nullable = false, unique = true)
     private Long publicationId;
 
     // @OneToOne
@@ -53,7 +55,7 @@ public class Book {
 
     // 비즈니스 로직 1. 도서 등록 (생성자 사용)
     public Book(BookPublished bookPublished) {
-        this.publicationId = bookPublished.getPublicationId();
+        this.publicationId = bookPublished.getId();
         this.authorId = bookPublished.getAuthorId();
         this.authorName = bookPublished.getAuthorName();
         this.title = bookPublished.getTitle();
@@ -100,35 +102,33 @@ public class Book {
         }
     }
     
+    // 비즈니스 로직 4. 책 열람
     //<<< Clean Arch / Port Method
     public void readBook(ReadBookCommand readBookCommand) {
-        
-
         BookRead bookRead = new BookRead(this);
+
+        if (readBookCommand != null && readBookCommand.getSubscriberId() != null) {
+            bookRead.setSubscriberId(readBookCommand.getSubscriberId());
+        }
+
         bookRead.publishAfterCommit();
     }
     //>>> Clean Arch / Port Method
-    
-    // @PostUpdate
-    // public void onPostUpdate() {
-    //     BookRead bookRead = new BookRead();
-    //     bookRead.publishAfterCommit();
-    // }
 
-    //<<< Clean Arch / Port Method
-    public void deleteBook(DeleteBookCommand deleteBookCommand) {
-        
-
-        BookDeleted bookDeleted = new BookDeleted(this);
-        bookDeleted.publishAfterCommit();
-    }
-    //>>> Clean Arch / Port Method
-    
+    // 비즈니스 로직 5. 책 삭제
+    // hard delete
     @PreRemove
     public void onPreRemove() {
         BookDeleted bookDeleted = new BookDeleted(this);
         bookDeleted.publishAfterCommit();
     }
+    /* soft delete
+    public void deleteBook() {
+        this.setStatus(BookStatus.DELETED);
+
+        BookDeleted bookDeleted = new BookDeleted(this);
+        bookDeleted.publishAfterCommit();
+    */
 
     // public static BookRepository repository() {
     //     BookRepository bookRepository = LibraryApplication.applicationContext.getBean(

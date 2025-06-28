@@ -10,9 +10,8 @@ import lombok.*;
 @Data
 @ToString
 public class BookRead extends AbstractEvent {
-
-    private Long id;
-    private Long views;
+    private Long subscriberId;
+    // private Long views;
 
     public BookRead(Book aggregate) {
         super(aggregate);

@@ -17,8 +17,15 @@ import org.springframework.stereotype.Service;
 @Transactional
 public class PolicyHandler {
 
+    // @Autowired
+    // BookRepository bookRepository;
+    
+    private final BookRepository bookRepository;
+
     @Autowired
-    BookRepository bookRepository;
+    public PolicyHandler (BookRepository bookRepository) {
+        this.bookRepository = bookRepository;
+    }
 
     @StreamListener(KafkaProcessor.INPUT)
     public void whatever(@Payload String eventString) {}
