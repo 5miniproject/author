@@ -72,7 +72,7 @@ public class BookController {
 
         // 1. Repository를 통해 애그리거트 조회
         Book book = bookRepository.findById(bookId).orElseThrow(() -> 
-        ResponseStatusException(HttpStatus.NOT_FOUND, "해당 ID의 책을 찾을 수 없습니다."));
+            new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 ID의 책을 찾을 수 없습니다."));
 
         // soft delete 구현 시
         if (book.getStatus() == Book.BookStatus.DELETED) {
@@ -95,7 +95,7 @@ public class BookController {
             System.out.println("##### /book/delete called #####");
 
             Book book = bookRepository.findById(id).orElseThrow(() -> 
-            new Exception("삭제하려는 책을 찾을 수 업습니다."));
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "삭제하려는 책을 찾을 수 없습니다."));
 
             // hard delete: 물리적으로 DB에서 삭제하기
             bookRepository.delete(book);
