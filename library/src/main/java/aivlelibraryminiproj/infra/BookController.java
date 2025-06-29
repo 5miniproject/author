@@ -8,6 +8,13 @@ import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+// 정렬
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
+
 //<<< Clean Arch / Inbound Adaptor
 @RestController
 @RequestMapping(value="/books")
@@ -68,6 +75,30 @@ public class BookController {
         // soft delete: DB에서 삭제하는 게 아니라 상태만 변경
         // book.deleteBook();
         // bookRepository.save(book);
+    }
+
+    // 책들을 정렬할 때, 베스트 셀러 우선으로 정렬
+    @GetMapping
+    public ResponseEntity<Page<Book>> listBooks(
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size
+    ) {
+        // 정렬 규칙
+        // 1. isBestSeller true
+        // 2. publishedAt 기준으로 (미구현)
+        Sort sort = Sort.by(
+            Sort.Order.desc("isBestSeller"),
+            // Sort.Order.desc("publishedAt")
+        );
+
+        // 페이지 번호와 사이즈, 정렬 규칙을 담은 Pageable 객체 생성
+        Pageable pageable = PageRequest.of(page. size, sort);
+
+        // Repository에 Pageable 객체 전달
+        Page<Book> bookPage = bookRepository.findAll(pageable);
+
+        // 조회된 결과를 ResponseEntity에 담아 반환
+        return ResponseEntity.ok(bookPage);
     }
 }
 //>>> Clean Arch / Inbound Adaptor
