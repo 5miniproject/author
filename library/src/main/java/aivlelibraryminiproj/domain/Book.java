@@ -1,22 +1,18 @@
 package aivlelibraryminiproj.domain;
 
-import aivlelibraryminiproj.LibraryApplication;
-import aivlelibraryminiproj.domain.BestsellerArchived;
-import aivlelibraryminiproj.domain.BookDeleted;
-import aivlelibraryminiproj.domain.BookPublished;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.time.LocalDate;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+
+import aivlelibraryminiproj.LibraryApplication;
 import javax.persistence.*;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Where;
 
 @Entity
 @Table(name = "books")
 @Data
-@NoArgs
+@NoArgsConstructor
+@Where(clause = "status != 'DELETED'") // soft delete의 경우 findAll하면 다 찾아지는 것 방지
 //<<< DDD / Aggregate Root
 public class Book {
 
@@ -24,8 +20,11 @@ public class Book {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    // @Column(nullable = false, unique = true)
     private Long publicationId;
+
+    // @OneToOne
+    // Publication publication;
 
     private Long authorId;    
     private String authorName;
@@ -43,69 +42,102 @@ public class Book {
     private Integer subscriptionFee;
     private Boolean isBestSeller = false;
     private Long views = 0L;
+    private Long subscriptionCount = 0L;
 
     @Enumerated(EnumType.STRING)
     private BookStatus status;
 
     public enum BookStatus {
-        PUBLISHED,      // 출간 완료
+        REGISTERED,      
         DELETED
     }
     // private Boolean isDeleted;
 
-    @PostRemove
-    public void onPostRemove() {
+    // 비즈니스 로직 1. 도서 등록 (생성자 사용)
+    public Book(BookPublished bookPublished) {
+        this.publicationId = bookPublished.getId();
+        this.authorId = bookPublished.getAuthorId();
+        this.authorName = bookPublished.getAuthorName();
+        this.title = bookPublished.getTitle();
+        this.contents = bookPublished.getContents();
+        this.plot = bookPublished.getPlot();
+        this.plotUrl = bookPublished.getPlotUrl();
+        this.coverImageUrl = bookPublished.getCoverImageUrl();
+        this.category = bookPublished.getCategory();
+        this.subscriptionFee = bookPublished.getSubscriptionFee();
+        this.status = BookStatus.REGISTERED;
+    }
+
+    @PostPersist
+    public void onPostPersist() {
+        BookRegistered bookRegistered = new BookRegistered(this);
+        bookRegistered.publishAfterCommit();
+    }
+
+    // 비즈니스 로직 2. 구독 수 증가 및 베스트셀러 선정
+    public void increaseCountAndCheckBestseller() {
+        this.subscriptionCount++;
+
+        if (this.subscriptionCount >= 5 && !this.isBestSeller) {
+            this.isBestSeller = true;
+
+            BestSellerArchived bestSellerArchived = new BestSellerArchived(this);
+            bestSellerArchived.publishAfterCommit();
+        }
+    }
+
+    // 비즈니스 로직 3. 구독 취소 및 베스트셀러 취소
+    public void decreaseCountAndCheckBestseller() {
+        // 1. 구독 횟수가 0보다 클 때만 감소
+        if (this.subscriptionCount > 0) {
+            this.subscriptionCount--;
+        }
+
+        // 2. 구독 횟수가 5회 미만이 되고, 현재 베스트셀러 상태일 경우
+        if (this.subscriptionCount < 5 && this.isBestSeller) {        
+            this.isBestSeller = false;
+
+            BestSellerCancelled bestSellerCancelled = new BestSellerCancelled(this);
+            bestSellerCancelled.publishAfterCommit();
+        }
+    }
+    
+    // 비즈니스 로직 4. 책 열람
+    //<<< Clean Arch / Port Method
+    public void readBook(ReadBookCommand readBookCommand) {
+        this.views++;
+
+        BookRead bookRead = new BookRead(this);
+
+        if (readBookCommand != null && readBookCommand.getSubscriberId() != null) {
+            bookRead.setSubscriberId(readBookCommand.getSubscriberId());
+        }
+
+        bookRead.publishAfterCommit();
+    }
+    //>>> Clean Arch / Port Method
+
+    // 비즈니스 로직 5. 책 삭제
+    // hard delete
+    @PreRemove
+    public void onPreRemove() {
         BookDeleted bookDeleted = new BookDeleted(this);
         bookDeleted.publishAfterCommit();
     }
+    /* soft delete
+    public void deleteBook() {
+        this.status = BookStatus.DELETED;
 
-    public static BookRepository repository() {
-        BookRepository bookRepository = LibraryApplication.applicationContext.getBean(
-            BookRepository.class
-        );
-        return bookRepository;
+        BookDeleted bookDeleted = new BookDeleted(this);
+        bookDeleted.publishAfterCommit();
     }
+    */
 
-    //<<< Clean Arch / Port Method
-    public void readBook(ReadBookCommand readBookCommand) {
-        //implement business logic here:
-
-        BookRead bookRead = new BookRead(this);
-        bookRead.publishAfterCommit();
-        BookReadFailed bookReadFailed = new BookReadFailed(this);
-        bookReadFailed.publishAfterCommit();
-    }
-    //>>> Clean Arch / Port Method
-
-    //<<< Clean Arch / Port Method
-    public static void registerBook(BookPublished bookPublished) {
-        Book book = new Book(bookPublished);
-
-        repository().save(book);
-
-        BookRegistered bookRegistered = new BookRegistered(book);
-        bookRegistered.publishAfterCommit();
-
-    }
-
-    //>>> Clean Arch / Port Method
-    //<<< Clean Arch / Port Method
-    public static void archiveBestseller(BookRead bookRead) {
-        repository().findById(bookRead.getBookId()).ifPresent(book->{
-            
-            if (book.getViews() => 5 && !book.getIsBestSeller()) {
-                book.setIsBestSeller(true);
-
-                repository().save(book);
-            }
-
-            BestsellerArchived bestsellerArchived = new BestsellerArchived(book);
-            bestsellerArchived.publishAfterCommit();
-
-         });
-
-    }
-    //>>> Clean Arch / Port Method
-
+    // public static BookRepository repository() {
+    //     BookRepository bookRepository = LibraryApplication.applicationContext.getBean(
+    //         BookRepository.class
+    //     );
+    //     return bookRepository;
+    // }
 }
 //>>> DDD / Aggregate Root

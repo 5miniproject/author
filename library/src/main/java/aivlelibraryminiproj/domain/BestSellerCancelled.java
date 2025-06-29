@@ -2,22 +2,21 @@ package aivlelibraryminiproj.domain;
 
 import aivlelibraryminiproj.domain.*;
 import aivlelibraryminiproj.infra.AbstractEvent;
-import java.time.LocalDate;
 import java.util.*;
 import lombok.*;
 
 //<<< DDD / Domain Event
 @Data
 @ToString
-public class BestsellerArchived extends AbstractEvent {
+public class BestSellerCancelled extends AbstractEvent {
+    private Long bookId;
+    private Boolean isBestSeller;
 
-    private Boolean isBest;
-
-    public BestsellerArchived(Book aggregate) {
+    public BestSellerCancelled(Book aggregate) {
         super(aggregate);
     }
 
-    public BestsellerArchived() {
+    public BestSellerCancelled() {
         super();
     }
 }
