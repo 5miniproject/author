@@ -105,6 +105,8 @@ public class Book {
     // 비즈니스 로직 4. 책 열람
     //<<< Clean Arch / Port Method
     public void readBook(ReadBookCommand readBookCommand) {
+        this.views++;
+
         BookRead bookRead = new BookRead(this);
 
         if (readBookCommand != null && readBookCommand.getSubscriberId() != null) {
@@ -124,10 +126,11 @@ public class Book {
     }
     /* soft delete
     public void deleteBook() {
-        this.setStatus(BookStatus.DELETED);
+        this.status = BookStatus.DELETED;
 
         BookDeleted bookDeleted = new BookDeleted(this);
         bookDeleted.publishAfterCommit();
+    }
     */
 
     // public static BookRepository repository() {
