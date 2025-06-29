@@ -28,7 +28,7 @@ spring:
         - id: library
           uri: http://localhost:8086
           predicates:
-            - Path=/books/**, /checkSubsciptionPermissons/**
+            - Path=/books/**, /subsciptionPermissions/**
         - id: serviceai
           uri: http://localhost:8087
           predicates:

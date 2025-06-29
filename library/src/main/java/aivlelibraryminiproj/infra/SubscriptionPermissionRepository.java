@@ -7,10 +7,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
-// @RepositoryRestResource(
-//     collectionResourceRel = "checkSubscriptionPermissons",
-//     path = "checkSubscriptionPermissons"
-// )
+@RepositoryRestResource(
+    collectionResourceRel = "subscriptionPermissions",
+    path = "subscriptionPermissions"
+)
 public interface SubscriptionPermissionRepository
     extends JpaRepository<SubscriptionPermission, SubscriptionPermissionId> {
         // 1. 자동 생성 ID
