@@ -10,4 +10,8 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
     path = "subscriptionOpens"
 )
 public interface SubscriptionOpenRepository
-    extends PagingAndSortingRepository<SubscriptionOpen, Long> {}
+    extends PagingAndSortingRepository<SubscriptionOpen, Long> {
+
+    // 특정 subscriberId를 가진 모든 SubscriptionOpen 레코드를 조회하는 메소드
+    List<SubscriptionOpen> findBySubscriberId(Long subscriberId);
+}
