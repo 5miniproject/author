@@ -118,7 +118,7 @@ public class BookController {
     // 2. 조회수 순: GET /books?sortBy=views
     // 3. 최신 등록일 순: GET /books?sortBy=date
     @GetMapping
-    public ResponseEntity<Page<Book>> listBooks(
+    public ResponseEntity<Page<BookSummaryDto>> listBooks(
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "10") int size,
         @RequestParam(defaultValue = "default") String sortBy) {
@@ -130,8 +130,10 @@ public class BookController {
             // Repository에 Pageable 객체 전달
             Page<Book> bookPage = bookRepository.findAll(pageable);
 
+            Page<BookSummaryDto> bookSummaryDtoPage = bookPage.map(BookSummaryDto::new);
+
             // 조회된 결과를 ResponseEntity에 담아 반환
-            return ResponseEntity.ok(bookPage);
+            return ResponseEntity.ok(bookSummaryDtoPage);
         }
 
     private Sort createSortByOption(String sortBy) {
