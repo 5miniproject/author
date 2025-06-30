@@ -31,8 +31,10 @@ public class BookScript {
 
     private Long authorId;
 
+    @Lob
+    @Column
     private String contents;
-
+    
     private String status;
 
     private Date createdAt;
