@@ -1,8 +1,8 @@
 package aivlelibraryminiproj.domain;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+// import com.fasterxml.jackson.databind.ObjectMapper;
+// import aivlelibraryminiproj.LibraryApplication;
 
-import aivlelibraryminiproj.LibraryApplication;
 import javax.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;

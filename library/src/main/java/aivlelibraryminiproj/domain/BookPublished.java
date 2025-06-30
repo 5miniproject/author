@@ -1,11 +1,10 @@
 package aivlelibraryminiproj.domain;
 
-import java.util.*;
+// import java.util.*;
+// import javax.persistence.Enumerated;
+// import aivlelibraryminiproj.domain.*;
+// import aivlelibraryminiproj.domain.Book.BookStatus;
 
-import javax.persistence.Enumerated;
-
-import aivlelibraryminiproj.domain.*;
-import aivlelibraryminiproj.domain.Book.BookStatus;
 import aivlelibraryminiproj.infra.AbstractEvent;
 import lombok.*;
 

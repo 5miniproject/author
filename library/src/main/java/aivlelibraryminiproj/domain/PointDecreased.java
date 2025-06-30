@@ -1,7 +1,8 @@
 package aivlelibraryminiproj.domain;
 
-import java.util.*;
-import aivlelibraryminiproj.domain.*;
+// import java.util.*;
+// import aivlelibraryminiproj.domain.*;
+
 import aivlelibraryminiproj.infra.AbstractEvent;
 import lombok.*;
 
@@ -9,7 +10,8 @@ import lombok.*;
 @Data
 @ToString
 public class PointDecreased extends AbstractEvent {
-    private Long subscriberId;
+    // private Long subscriberId;
+    private Long userId;
     private Long bookId;
     private Integer point;
     // private Boolean isSubscribed;

@@ -1,10 +1,12 @@
 package aivlelibraryminiproj.domain;
 
-import aivlelibraryminiproj.domain.*;
+// import aivlelibraryminiproj.domain.*;
+// import java.time.LocalDate;
+// import java.util.*;
+
 import aivlelibraryminiproj.infra.AbstractEvent;
-import java.time.LocalDate;
-import java.util.*;
 import lombok.*;
+
 
 //<<< DDD / Domain Event
 @Data
