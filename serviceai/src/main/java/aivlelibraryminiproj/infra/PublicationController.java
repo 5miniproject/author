@@ -45,7 +45,7 @@ public class PublicationController {
     }
 
     @RequestMapping(
-        value = "/publications/{id}/regeneratei",
+        value = "/publications/{id}/regenerate",
         method = RequestMethod.PUT,
         produces = "application/json;charset=UTF-8"
     )

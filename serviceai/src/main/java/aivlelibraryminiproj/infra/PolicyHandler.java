@@ -49,5 +49,18 @@ public class PolicyHandler {
 
         Publication.BookCoverImagePlotCompleted(event);
     }
+
+    @StreamListener(
+        value = KafkaProcessor.INPUT,
+        condition = "headers['type']=='RegenerationRequested'"
+    )
+    public void wheneverRegenerationRequest_RegenerateCompleted(
+        @Payload RegenerationRequested regenerationRequested
+    ) {
+        RegenerationRequested event = regenerationRequested;
+        System.out.println("\n\n##### listener RegenerateCompleted : " + event + "\n\n");
+
+        Publication.RegenerateCompleted(event);
+    }
 }
 //>>> Clean Arch / Inbound Adaptor

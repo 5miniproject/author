@@ -36,7 +36,6 @@ public class OpenAiService {
 
     private final String apiKey;
     private final String chatUrl = "https://api.openai.com/v1/chat/completions";
-    private final String imageUrl = "https://api.openai.com/v1/images/generations";
 
     private final OkHttpClient client = new OkHttpClient.Builder()
                                         .connectTimeout(30, TimeUnit.SECONDS)

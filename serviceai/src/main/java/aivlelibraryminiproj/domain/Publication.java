@@ -4,10 +4,12 @@ import aivlelibraryminiproj.ServiceaiApplication;
 import aivlelibraryminiproj.ai.ApplicationContextProvider;
 import aivlelibraryminiproj.ai.OpenAiService;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Lob;
 import javax.persistence.Table;
 
 import lombok.Data;
@@ -29,6 +31,8 @@ public class Publication {
 
     private String title;
 
+    @Lob
+    @Column
     private String contents;
 
     private String coverImageUrl;
@@ -82,7 +86,7 @@ public class Publication {
         publication.setScriptId(bookPublishRequested.getId());
         publication.setTitle(bookPublishRequested.getTitle());
         publication.setContents(bookPublishRequested.getContents());
-        publication.setStatus("이미지 생성 전");
+        publication.setStatus("이미지/줄거리 생성 전");
         repository().save(publication);
 
         BookCoverImagePlotRequest bookCoverImagePlotRequest = new BookCoverImagePlotRequest(publication);
@@ -131,6 +135,33 @@ public class Publication {
 
     private static OpenAiService aiService() {
         return ApplicationContextProvider.getBean(OpenAiService.class);
+    }
+
+    //>>> Clean Arch / Port Method
+    //<<< Clean Arch / Port Method
+    public static void RegenerateCompleted(
+        RegenerationRequested regenerationRequested
+    ) {
+
+        repository().findById(regenerationRequested.getId()).ifPresent(publication->{
+            
+            try{
+                byte[] coverImageBytes = aiService().generateCoverImage(publication.getTitle(), publication.getAuthorname(), 
+                                                                        publication.getPlot(), publication.getCategory());
+
+                String coverImageUrl = publication.getCoverImageUrl();
+                coverImageUrl = aiService().saveBytesToFile(coverImageBytes, coverImageUrl);
+                
+                publication.setCoverImageUrl(coverImageUrl);
+                publication.setStatus("이미지 재생성완료");
+
+                repository().save(publication);
+            }catch(Exception e){
+                e.printStackTrace();
+            }
+            
+        });
+
     }
 
 }
