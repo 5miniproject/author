@@ -29,6 +29,7 @@ public class CheckBookViewHandler {
             // view 객체에 이벤트의 Value 를 set 함
             checkBook.setId(BookRegistered.getId());
             checkBook.setTitle(BookRegistered.getTitle());
+            checkBook.setAuthorId(BookRegistered.getAuthorId());
             // view 레파지 토리에 save
             checkBookRepository.save(checkBook);
         } catch (Exception e) {

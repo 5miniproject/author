@@ -30,12 +30,12 @@ public class PolicyHandler {
         System.out.println("##### listener PointAdd : " + event);
 
         // 중복 생성 방지 (이미 포인트 객체가 존재하면 패스)
-        if (pointRepository.findByUserId(event.getId()).isPresent()) return;
+        if (pointRepository.findById(event.getId()).isPresent()) return;
 
         Point point = new Point();
         point.setUserId(event.getId());
-        point.setIsKT(event.getIsKT());
-        point.setPoint(event.getIsKT() ? 5000 : 1000); // KT 여부에 따라 포인트 설정
+        point.setIsKt(event.getIsKt());
+        point.setPoint(event.getIsKt() ? 5000 : 1000); // KT 여부에 따라 포인트 설정
 
         pointRepository.save(point);
 
@@ -56,7 +56,7 @@ public class PolicyHandler {
     ) {
         System.out.println("##### listener PointUse : " + event);
 
-        Optional<Point> optionalPoint = pointRepository.findByUserId(event.getSubscriberId());
+        Optional<Point> optionalPoint = pointRepository.findById(event.getSubscriberId());
         if (optionalPoint.isPresent()) {
             Point point = optionalPoint.get();
             int usedPoint = 1000;
@@ -66,17 +66,17 @@ public class PolicyHandler {
                 pointRepository.save(point);
 
                 PointDecreased decreased = new PointDecreased(point);
-                decreased.setUsedPoint(usedPoint);
+                decreased.setPoint(usedPoint);
                 decreased.publishAfterCommit();
             } else {
                 System.out.println("포인트 부족: 사용자 ID = " + point.getUserId());
                 // 부족 이벤트 발행 (설계와 다이어그램 반영)
                 PointShorted shorted = new PointShorted(point);
-                shorted.setUsedPoint(usedPoint);
+                shorted.setPoint(usedPoint);
                 shorted.publishAfterCommit();
 
                 // 👇 이벤트 객체의 subscriptionId 필드에 event에서 받은 subscriptionId를 세팅
-                shorted.setSubscriptionId(event.getSubscriptionId());
+                shorted.setSubscriptionId(event.getSubscriberId());
                 shorted.publishAfterCommit();
             }
         } else {

@@ -42,8 +42,9 @@ public class Subscriber {
         this.registerDate = new Date(); // 현재 시스템의 날짜와 시간을 registerDate에 설정합니다.
         // 필요하다면 다른 필드의 기본값도 여기서 설정할 수 있습니다.
         this.isPurchased = false;
-        this.purchaseDate = null;
-        this.isKt = false;
+        if (this.isKt == null) {
+            this.isKt = false;
+        }
     }
 
     @PostPersist

@@ -17,4 +17,6 @@ public class CheckBook {
     private Long id;
 
     private String title;
+    
+    private Long authorId;
 }
