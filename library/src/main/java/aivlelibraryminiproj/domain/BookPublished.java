@@ -1,7 +1,11 @@
 package aivlelibraryminiproj.domain;
 
 import java.util.*;
+
+import javax.persistence.Enumerated;
+
 import aivlelibraryminiproj.domain.*;
+import aivlelibraryminiproj.domain.Book.BookStatus;
 import aivlelibraryminiproj.infra.AbstractEvent;
 import lombok.*;
 
@@ -9,9 +13,9 @@ import lombok.*;
 @Data
 @ToString
 public class BookPublished extends AbstractEvent {
-    private Long Id;
+    private Long id;
     private Long authorId;
-    private String authorName;
+    private String authorname;
     private String title;
     private String contents;
     private String plot;
@@ -19,4 +23,5 @@ public class BookPublished extends AbstractEvent {
     private String coverImageUrl;
     private String category;
     private Integer subscriptionFee;
+    // private String status;
 }

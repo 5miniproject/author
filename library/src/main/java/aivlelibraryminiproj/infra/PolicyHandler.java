@@ -23,13 +23,10 @@ public class PolicyHandler {
     // BookRepository bookRepository;
     
     private final BookRepository bookRepository;
-    private final SubscriptionPermissionRepository permissionRepository;
 
     // @Autowired 생략 가능
-    public PolicyHandler(BookRepository bookRepository,
-    SubscriptionPermissionRepository permissionRepository) {
+    public PolicyHandler(BookRepository bookRepository) {
         this.bookRepository = bookRepository;
-        this.permissionRepository = permissionRepository;
     }
 
     @StreamListener(KafkaProcessor.INPUT)

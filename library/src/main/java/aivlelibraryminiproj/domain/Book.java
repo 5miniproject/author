@@ -31,6 +31,7 @@ public class Book {
     private String title;
 
     @Lob
+    @Column
     private String contents;
 
     @Lob
@@ -57,7 +58,7 @@ public class Book {
     public Book(BookPublished bookPublished) {
         this.publicationId = bookPublished.getId();
         this.authorId = bookPublished.getAuthorId();
-        this.authorName = bookPublished.getAuthorName();
+        this.authorName = bookPublished.getAuthorname();
         this.title = bookPublished.getTitle();
         this.contents = bookPublished.getContents();
         this.plot = bookPublished.getPlot();

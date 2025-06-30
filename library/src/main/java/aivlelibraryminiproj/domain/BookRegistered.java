@@ -14,20 +14,24 @@ public class BookRegistered extends AbstractEvent {
     private Long id;
     private Long authorId;
     private Long publicationId;
+    private String authorName;
+    private String title;
     private String contents;
-    private String coverImageUrl;
     private String plot;
-    private String status;
+    private String plotUrl;
+    private String coverImageUrl;
     private String category;
     private Integer subscriptionFee;
-    private String plotUrl;
+    
     private Long views;
-    private Boolean isBest;
-    private String title;
-    private String authorName;
+    private Long subscriptionCount;
+    private Boolean isBestSeller;
+
+    private String status;
 
     public BookRegistered(Book aggregate) {
         super(aggregate);
+        this.setStatus(aggregate.getStatus().name());
     }
 
     public BookRegistered() {
