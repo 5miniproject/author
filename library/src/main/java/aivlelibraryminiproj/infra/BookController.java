@@ -2,12 +2,12 @@ package aivlelibraryminiproj.infra;
 
 // import aivlelibraryminiproj.infra.*;
 // import java.util.Optional;
+// import org.springframework.beans.factory.annotation.Autowired;
 
 import aivlelibraryminiproj.domain.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 // 정렬
@@ -34,7 +34,7 @@ public class BookController {
     private final BookRepository bookRepository;
     private final SubscriptionPermissionRepository permissionRepository;
 
-    @Autowired
+    // @Autowired
     public BookController(BookRepository bookRepository,
     SubscriptionPermissionRepository permissionRepository) {
         this.bookRepository = bookRepository;
@@ -46,11 +46,13 @@ public class BookController {
     //     method = RequestMethod.GET,
     //     produces = "application/json;charset=UTF-8"
     // )
-    /* GET은 안전성과 멱등성을 무조건 보장해야함
-    이 커맨드는 BookRead라는 이벤트를 발행함 -> 이벤트 발행은 명백한 상태 변경임
-    단순 조회가 아닌 행위를 수행하고 있으므로 PUT
+    /* 
+    GET: readBook은 views를 증가시키고 BookRead 이벤트를 발행하므로 GET은 부적합
+    PUT: 멱등성(같은 요청을 보내도 서버의 상태가 유지되어야함)을 보장해야 하는데 readBook은 views를 계속 변화시키니 멱등성 보장 X
+    -> 따라서 POST가 맞다
     */
-    @PutMapping(value = "/{id}/read") 
+    // @PutMapping(value = "/{id}/read") 
+    @PostMapping(value = "/{id}/read") 
     public Book readBook(
         @PathVariable(value = "id") Long bookId,
         @RequestBody ReadBookCommand readBookCommand,
