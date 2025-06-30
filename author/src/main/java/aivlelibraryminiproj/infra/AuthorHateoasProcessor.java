@@ -7,22 +7,17 @@ import org.springframework.hateoas.server.RepresentationModelProcessor;
 import org.springframework.stereotype.Component;
 
 @Component
-public class AuthorHateoasProcessor
-    implements RepresentationModelProcessor<EntityModel<Author>> {
-
+public class AuthorHateoasProcessor implements RepresentationModelProcessor<EntityModel<Author>> {
     @Override
     public EntityModel<Author> process(EntityModel<Author> model) {
         model.add(
-            Link
-                .of(model.getRequiredLink("self").getHref() + "/approveauthor")
+            Link.of(model.getRequiredLink("self").getHref() + "/approveauthor")
                 .withRel("approveauthor")
         );
         model.add(
-            Link
-                .of(model.getRequiredLink("self").getHref() + "/rejectauthor")
+            Link.of(model.getRequiredLink("self").getHref() + "/rejectauthor")
                 .withRel("rejectauthor")
         );
-
         return model;
     }
 }
