@@ -55,7 +55,6 @@ public class AuthorController {
     ) throws Exception {
         System.out.println("##### /author/rejectAuthor  called #####");
         Optional<Author> optionalAuthor = authorRepository.findById(id);
-        Optional<EbookStatisticsView> optionalView = ebookStatisticsViewRepository.findById(event.getId());
         optionalAuthor.orElseThrow(() -> new Exception("No Entity Found"));
         Author author = optionalAuthor.get();
         author.rejectAuthor(rejectAuthorCommand);
