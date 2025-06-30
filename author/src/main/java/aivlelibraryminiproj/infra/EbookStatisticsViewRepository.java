@@ -10,7 +10,8 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
     path = "ebookStatisticsViews"
 )
 public interface EbookStatisticsViewRepository
-    extends PagingAndSortingRepository<EbookStatisticsView, Long> {}
+    extends PagingAndSortingRepository<EbookStatisticsView, Long> {
+    List<EbookStatisticsView> findByBookId(Long bookId);
 
-
-    
+    void deleteByBookId(Long bookId);
+}

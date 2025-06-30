@@ -1,8 +1,9 @@
-// EbookStatisticsViewViewHandler.java
 package aivlelibraryminiproj.infra;
 
 import aivlelibraryminiproj.config.kafka.KafkaProcessor;
 import aivlelibraryminiproj.domain.*;
+import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.annotation.StreamListener;
@@ -12,52 +13,141 @@ import org.springframework.stereotype.Service;
 @Service
 public class EbookStatisticsViewViewHandler {
 
+    //<<< DDD / CQRS
     @Autowired
     private EbookStatisticsViewRepository ebookStatisticsViewRepository;
 
-    // 작가등록됨 → ReadModel 생성
     @StreamListener(KafkaProcessor.INPUT)
-    public void whenAuthorRegistered_then_CREATE(@Payload AuthorRegistered event) {
-        if (!event.validate()) return;
+    public void whenBookRegistered_then_CREATE_1(
+        @Payload BookRegistered bookRegistered
+    ) {
+        try {
+            if (!bookRegistered.validate()) return;
 
-        EbookStatisticsView view = new EbookStatisticsView();
-        view.setId(event.getId());
-        view.setPublicationId(event.getEmail()); // 실제 publicationId 매핑 필요
-        view.setViews(0L); // 신규 등록 시 0으로 초기화
-        view.setIsApprove(event.getIsApprove()); // 등록 시 승인상태도 반영
-        ebookStatisticsViewRepository.save(view);
-    }
-
-    // 작가승인됨 → 승인 상태 갱신
-    @StreamListener(KafkaProcessor.INPUT)
-    public void whenAuthorApproved_then_UPDATE(@Payload AuthorApproved event) {
-        if (!event.validate()) return;
-
-        Optional<EbookStatisticsView> optionalView = ebookStatisticsViewRepository.findById(event.getId());
-        if (optionalView.isPresent()) {
-            EbookStatisticsView view = optionalView.get();
-            view.setIsApprove(event.getIsApprove()); // 실제 승인 상태 반영
-            ebookStatisticsViewRepository.save(view);
+            // view 객체 생성
+            EbookStatisticsView ebookStatisticsView = new EbookStatisticsView();
+            // view 객체에 이벤트의 Value 를 set 함
+            ebookStatisticsView.setSubscriptionCount(
+                bookRegistered.getSubscriptionCount()
+            );
+            ebookStatisticsView.setAuthorId(bookRegistered.getAuthorId());
+            ebookStatisticsView.setBookId(bookRegistered.getId());
+            ebookStatisticsView.setIsBestSeller(
+                bookRegistered.getIsBestSeller()
+            );
+            ebookStatisticsView.setCoverImageUrl(
+                bookRegistered.getCoverImageURL()
+            );
+            // view 레파지 토리에 save
+            ebookStatisticsViewRepository.save(ebookStatisticsView);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
-    // 작가거절됨 → 승인 상태 갱신
     @StreamListener(KafkaProcessor.INPUT)
-    public void whenAuthorRejected_then_UPDATE(@Payload AuthorRejected event) {
-        if (!event.validate()) return;
+    public void whenBookSubscriptionApplied_then_UPDATE_1(
+        @Payload BookSubscriptionApplied bookSubscriptionApplied
+    ) {
+        try {
+            if (!bookSubscriptionApplied.validate()) return;
+            // view 객체 조회
 
-        Optional<EbookStatisticsView> optionalView = ebookStatisticsViewRepository.findById(event.getId());
-        if (optionalView.isPresent()) {
-            EbookStatisticsView view = optionalView.get();
-            view.setIsApprove(event.getIsApprove()); // 실제 승인 상태 반영
-            ebookStatisticsViewRepository.save(view);
+            List<EbookStatisticsView> ebookStatisticsViewList = ebookStatisticsViewRepository.findByBookId(
+                bookSubscriptionApplied.getBookId()
+            );
+            for (EbookStatisticsView ebookStatisticsView : ebookStatisticsViewList) {
+                // view 객체에 이벤트의 eventDirectValue 를 set 함
+                ebookStatisticsView.setSubscriptionCount(
+                    ebookStatisticsView.getSubscriptionCount() + 1
+                );
+                // view 레파지 토리에 save
+                ebookStatisticsViewRepository.save(ebookStatisticsView);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
-    // 작가삭제됨 → ReadModel 삭제
     @StreamListener(KafkaProcessor.INPUT)
-    public void whenAuthorDeleted_then_DELETE(@Payload AuthorDeleted event) {
-        if (!event.validate()) return;
-        ebookStatisticsViewRepository.deleteById(event.getId());
+    public void whenBestsellerArchived_then_UPDATE_2(
+        @Payload BestsellerArchived bestsellerArchived
+    ) {
+        try {
+            if (!bestsellerArchived.validate()) return;
+            // view 객체 조회
+
+            List<EbookStatisticsView> ebookStatisticsViewList = ebookStatisticsViewRepository.findByBookId(
+                bestsellerArchived.getId()
+            );
+            for (EbookStatisticsView ebookStatisticsView : ebookStatisticsViewList) {
+                // view 객체에 이벤트의 eventDirectValue 를 set 함
+                ebookStatisticsView.setIsBestSeller(true);
+                // view 레파지 토리에 save
+                ebookStatisticsViewRepository.save(ebookStatisticsView);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
+
+    @StreamListener(KafkaProcessor.INPUT)
+    public void whenBookSubscriptionCancelled_then_UPDATE_3(
+        @Payload BookSubscriptionCancelled bookSubscriptionCancelled
+    ) {
+        try {
+            if (!bookSubscriptionCancelled.validate()) return;
+            // view 객체 조회
+
+            List<EbookStatisticsView> ebookStatisticsViewList = ebookStatisticsViewRepository.findByBookId(
+                bookSubscriptionCancelled.getBookId()
+            );
+            for (EbookStatisticsView ebookStatisticsView : ebookStatisticsViewList) {
+                // view 객체에 이벤트의 eventDirectValue 를 set 함
+                ebookStatisticsView.setSubscriptionCount(
+                    ebookStatisticsView.getSubscriptionCount() - 1
+                );
+                // view 레파지 토리에 save
+                ebookStatisticsViewRepository.save(ebookStatisticsView);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @StreamListener(KafkaProcessor.INPUT)
+    public void whenBestSellerCancelled_then_UPDATE_4(
+        @Payload BestSellerCancelled bestSellerCancelled
+    ) {
+        try {
+            if (!bestSellerCancelled.validate()) return;
+            // view 객체 조회
+
+            List<EbookStatisticsView> ebookStatisticsViewList = ebookStatisticsViewRepository.findByBookId(
+                bestSellerCancelled.getId()
+            );
+            for (EbookStatisticsView ebookStatisticsView : ebookStatisticsViewList) {
+                // view 객체에 이벤트의 eventDirectValue 를 set 함
+                ebookStatisticsView.setIsBestSeller(false);
+                // view 레파지 토리에 save
+                ebookStatisticsViewRepository.save(ebookStatisticsView);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @StreamListener(KafkaProcessor.INPUT)
+    public void whenBookDeleted_then_DELETE_1(
+        @Payload BookDeleted bookDeleted
+    ) {
+        try {
+            if (!bookDeleted.validate()) return;
+            // view 레파지 토리에 삭제 쿼리
+            ebookStatisticsViewRepository.deleteByBookId(bookDeleted.getId());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    //>>> DDD / CQRS
 }

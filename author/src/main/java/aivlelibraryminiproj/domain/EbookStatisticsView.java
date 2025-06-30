@@ -16,7 +16,9 @@ public class EbookStatisticsView {
     //@GeneratedValue(strategy=GenerationType.AUTO)
     private Long id;
 
-    private String publicationId;
-    private Long views;
-    private Boolean isApprove;
+    private Long bookId;
+    private Long subscriptionCount;
+    private Long authorId;
+    private Boolean isBestSeller;
+    private String coverImageUrl;
 }
