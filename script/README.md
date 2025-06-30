@@ -1,5 +1,17 @@
 # script
 
+1. status 정의
+- 출간요청 전: DRAFT
+- 출간요청 후: REQUESTED
+
+2. 특이사항
+- 책 수정시 PUT method 사용시 다른 정보가 날아감
+- -> 수정시 PUT method 금지하고 PATCH 사용
+- STATUS가 REQUESTED일 때 수정 금지
+- -> 수정은 안되는데 200 OK가 발행됨.
+
+
+
 ## Running in local development environment
 
 ```
