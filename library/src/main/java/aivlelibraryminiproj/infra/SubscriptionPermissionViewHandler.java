@@ -41,7 +41,8 @@ public class SubscriptionPermissionViewHandler {
                 System.out.println("\n\n##### listener CreatePermission : " + event + "\n\n");
                 // 1. 복합 키 생성
                 SubscriptionPermissionId permissionId = new SubscriptionPermissionId(
-                    event.getSubscriberId(),
+                    // event.getSubscriberId(),
+                    event.getUserId(),
                     event.getBookId()
                 );
                 
@@ -57,7 +58,8 @@ public class SubscriptionPermissionViewHandler {
                 // 즉, 이미 구독 권한이 존재한다는 의미입니다.
                 System.err.println(
                     "\n\n##### Duplicate subscription attempt detected and ignored for: " + 
-                    "SubscriberId=" + event.getSubscriberId() + 
+                    // "SubscriberId=" + event.getSubscriberId() + 
+                    "SubscriberId=" + event.getUserId() + 
                     ", BookId=" + event.getBookId() + "\n\n"
                 );
                 // 이 상황을 모니터링 시스템에 로그로 남기거나,
@@ -67,12 +69,15 @@ public class SubscriptionPermissionViewHandler {
                 // 예상치 못한 오류로 구독 권한 생성 실패 시 포인트 환불을 위한 보상 트랜잭션
                 System.err.println(
                     "\n\n##### Failed to create permission due to system error for: " +
-                    "SubscriberId=" + event.getSubscriberId() + ", BookId=" + event.getBookId() + "\n\n"
+                    // "SubscriberId=" + event.getSubscriberId() + 
+                    "SubscriberId=" + event.getUserId() + 
+                    ", BookId=" + event.getBookId() + "\n\n"
                 );
 
                 // 1. Saga 실패 이벤트를 생성
                 SubscriptionPermissionFailed failedEvent = new SubscriptionPermissionFailed();
-                failedEvent.setSubscriberId(event.getSubscriberId());
+                // failedEvent.setSubscriberId(event.getSubscriberId());
+                failedEvent.setSubscriberId(event.getUserId());
                 failedEvent.setBookId(event.getBookId());
                 failedEvent.setAmountToRefund(event.getPoint()); 
                 failedEvent.setReason(e.getMessage());

@@ -10,7 +10,8 @@ import lombok.*;
 @Data
 @ToString
 public class PointDecreased extends AbstractEvent {
-    private Long subscriberId;
+    // private Long subscriberId;
+    private Long userId;
     private Long bookId;
     private Integer point;
     // private Boolean isSubscribed;

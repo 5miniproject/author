@@ -63,10 +63,14 @@ public class PolicyHandler {
 
             if (point.getPoint() >= usedPoint) {
                 point.setPoint(point.getPoint() - usedPoint);
+
                 pointRepository.save(point);
 
                 PointDecreased decreased = new PointDecreased(point);
                 decreased.setPoint(usedPoint);
+                // 추가
+                decreased.setBookId(event.getBookId());
+
                 decreased.publishAfterCommit();
             } else {
                 System.out.println("포인트 부족: 사용자 ID = " + point.getUserId());

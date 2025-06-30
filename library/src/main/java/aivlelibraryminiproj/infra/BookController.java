@@ -3,6 +3,7 @@ package aivlelibraryminiproj.infra;
 // import aivlelibraryminiproj.infra.*;
 // import java.util.Optional;
 // import org.springframework.beans.factory.annotation.Autowired;
+// import org.springframework.security.core.Authentication;
 
 import aivlelibraryminiproj.domain.*;
 import javax.servlet.http.HttpServletRequest;
@@ -93,11 +94,11 @@ public class BookController {
 
     // 삭제는 보통 주체의 정보(ID 등) 외에 추가 데이터가 필요 없으니 DTO 생략 (DeleteBookCommand 필요 X)
     @DeleteMapping(value = "/{id}")
-    public ResponseEntity<Void> deleteBook(@PathVariable(value = "id") Long id) throws Exception {
+    public ResponseEntity<Void> deleteBook(@PathVariable(value = "id") Long bookId) throws Exception {
         try {
             System.out.println("##### /book/delete called #####");
 
-            Book book = bookRepository.findById(id).orElseThrow(() -> 
+            Book book = bookRepository.findById(bookId).orElseThrow(() -> 
                 new ResponseStatusException(HttpStatus.NOT_FOUND, "삭제하려는 책을 찾을 수 없습니다."));
 
             // hard delete: 물리적으로 DB에서 삭제하기
