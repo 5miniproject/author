@@ -2,7 +2,6 @@ package aivlelibraryminiproj.infra;
 
 import aivlelibraryminiproj.config.kafka.KafkaProcessor;
 import aivlelibraryminiproj.domain.*;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.annotation.StreamListener;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -19,9 +18,7 @@ public class PolicyHandler {
     PointRepository pointRepository;
 
     /**
-     * [1] 구독자가 가입되었을 때 → 포인트 적립
-     * - KT 사용자는 5000포인트
-     * - 그 외는 1000포인트
+     * [1] 구독자 가입 → 포인트 적립 (KT: 5000, 그 외: 1000)
      */
     @StreamListener(
         value = KafkaProcessor.INPUT,
@@ -47,8 +44,8 @@ public class PolicyHandler {
     }
 
     /**
-     * [2] 책 구독이 발생했을 때 → 포인트 차감
-     * - 차감 기준: 1000포인트
+     * [2] 책 구독 발생 → 포인트 차감 (1000포인트)
+     * 포인트 부족 시 PointShorted 이벤트 발행
      */
     @StreamListener(
         value = KafkaProcessor.INPUT,
@@ -62,7 +59,6 @@ public class PolicyHandler {
         Optional<Point> optionalPoint = pointRepository.findByUserId(event.getSubscriberId());
         if (optionalPoint.isPresent()) {
             Point point = optionalPoint.get();
-
             int usedPoint = 1000;
 
             if (point.getPoint() >= usedPoint) {
@@ -74,6 +70,10 @@ public class PolicyHandler {
                 decreased.publishAfterCommit();
             } else {
                 System.out.println("포인트 부족: 사용자 ID = " + point.getUserId());
+                // 부족 이벤트 발행 (설계와 다이어그램 반영)
+                PointShorted shorted = new PointShorted(point);
+                shorted.setUsedPoint(usedPoint);
+                shorted.publishAfterCommit();
             }
         } else {
             System.out.println("포인트 정보 없음: 사용자 ID = " + event.getSubscriberId());
