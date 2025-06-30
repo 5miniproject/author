@@ -18,4 +18,5 @@ public class EbookStatisticsView {
 
     private String publicationId;
     private Long views;
+    private Boolean isApprove;
 }
