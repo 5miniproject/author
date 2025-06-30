@@ -1,8 +1,9 @@
 package aivlelibraryminiproj.infra;
 
+// import org.springframework.beans.factory.annotation.Autowired;
+
 import aivlelibraryminiproj.config.kafka.KafkaProcessor;
 import aivlelibraryminiproj.domain.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.annotation.StreamListener;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
@@ -23,11 +24,9 @@ public class SubscriptionPermissionViewHandler {
 
     private final SubscriptionPermissionRepository permissionRepository;
 
-    @Autowired
     public SubscriptionPermissionViewHandler(SubscriptionPermissionRepository permissionRepository) {
         this.permissionRepository = permissionRepository;
     }
-
 
     // 4. 구독 성공 시 권한 생성
     @StreamListener(
