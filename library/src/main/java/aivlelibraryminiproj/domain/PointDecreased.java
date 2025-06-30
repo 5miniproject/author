@@ -11,6 +11,7 @@ import lombok.*;
 public class PointDecreased extends AbstractEvent {
     private Long subscriberId;
     private Long bookId;
+    private Integer point;
     // private Boolean isSubscribed;
     // private Date subscriptionDate;
     // private Date subscriptionExpiredDate;
