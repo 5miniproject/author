@@ -74,6 +74,10 @@ public class PolicyHandler {
                 PointShorted shorted = new PointShorted(point);
                 shorted.setUsedPoint(usedPoint);
                 shorted.publishAfterCommit();
+
+                // 👇 이벤트 객체의 subscriptionId 필드에 event에서 받은 subscriptionId를 세팅
+                shorted.setSubscriptionId(event.getSubscriptionId());
+                shorted.publishAfterCommit();
             }
         } else {
             System.out.println("포인트 정보 없음: 사용자 ID = " + event.getSubscriberId());
