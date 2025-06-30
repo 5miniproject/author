@@ -1,30 +1,35 @@
 package aivlelibraryminiproj.ai;
 
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
-
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import javax.imageio.ImageIO;
+
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import okhttp3.*;
-
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.PDPageContentStream;
-import org.apache.pdfbox.pdmodel.font.PDType1Font;
-import org.apache.pdfbox.pdmodel.font.PDType0Font;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 @Service
 public class OpenAiService {
@@ -44,38 +49,40 @@ public class OpenAiService {
         this.apiKey = apiKey;
     }
 
-    /**
-     * AI에게 title + content를 주고
-     * 줄거리, 카테고리(장르)를 JSON 형태로 받는다.
-     * (예: {"plot": "...", "category": "로맨스"})
-     */
     public Map<String, String> generatePlotAndCategory(String title, String content) throws IOException {
+        final int MAX_LENGTH = 15000; // 최대 입력 글자 수 제한
+
+        if (content.length() > MAX_LENGTH) {
+            content = content.substring(0, MAX_LENGTH);
+        }
+
         String prompt = String.format(
-                            "너는 책 원고 내용을 보고 다음 JSON 형식으로 줄거리(plot)와 카테고리(category)를 알려주는 AI야.\n" +
-                            "JSON 예시: {\"plot\": \"줄거리 내용(10줄 이내)\", \"category\": \"장르(소설, 에세이, 인문, 경제, 만화 중 선택)\"}\n" +
-                            "다음 내용을 보고 알려줘:\n" +
-                            "제목: %s\n" +
-                            "내용: %s",
-                            title, content
-                        );
+            "너는 책 원고 내용을 보고 핵심적인 줄거리(plot)만 아주 간결하게 5줄 이내로 요약하는 AI야.\n" +
+            "그리고 책의 장르(category)는 다음 중에서 하나만 선택해줘: 소설, 에세이, 인문, 경제, 만화.\n" +
+            "아래 형식의 JSON으로 결과를 출력해줘:\n" +
+            "{\"plot\": \"줄거리 내용\", \"category\": \"장르\"}\n" +
+            "제목: %s\n" +
+            "내용: %s",
+            title, content
+        );
 
         Map<String, String> userMessage = Map.of(
-                "role", "user",
-                "content", prompt
+            "role", "user",
+            "content", prompt
         );
 
         Map<String, Object> body = Map.of(
-                "model", "gpt-3.5-turbo",
-                "messages", List.of(userMessage),
-                "temperature", 0.7
+            "model", "gpt-4o",
+            "messages", List.of(userMessage),
+            "temperature", 0.7
         );
 
         Request request = new Request.Builder()
-                .url(chatUrl)
-                .header("Authorization", "Bearer " + apiKey)  // "Bearer " 붙여야함
-                .header("Content-Type", "application/json")
-                .post(RequestBody.create(mapper.writeValueAsString(body), MediaType.get("application/json")))
-                .build();
+            .url(chatUrl)
+            .header("Authorization", "Bearer " + apiKey)
+            .header("Content-Type", "application/json")
+            .post(RequestBody.create(mapper.writeValueAsString(body), MediaType.get("application/json")))
+            .build();
 
         try (Response response = client.newCall(request).execute()) {
             if (!response.isSuccessful()) {
@@ -86,31 +93,109 @@ public class OpenAiService {
             JsonNode root = mapper.readTree(json);
             String contentStr = root.get("choices").get(0).get("message").get("content").asText();
 
-            // AI가 JSON 문자열로 응답하므로 이를 Map으로 파싱
-            return mapper.readValue(contentStr, Map.class);
+            String cleanedContentStr = contentStr
+                .replaceAll("(?s)```json", "")
+                .replaceAll("```", "")
+                .trim();
+
+            Map<String, String> result = mapper.readValue(cleanedContentStr, Map.class);
+
+            String plot = result.getOrDefault("plot", "");
+            String category = result.getOrDefault("category", "미정");
+
+            return Map.of(
+                "plot", plot.trim(),
+                "category", category.trim()
+            );
+
+        } catch (Exception e) {
+            throw new IOException("GPT 처리 중 오류 발생: " + e.getMessage(), e);
         }
     }
 
-    public byte[] generateCoverImage(String title, String author, String content, String category) throws IOException {
+    public byte[] generateCoverImage(String title, String author, String plot, String category) throws IOException {
+        if (plot.length() > 400) {
+            plot = plot.substring(0, 400) + "...";
+        }
+
+        String enTitle = translateText(title);
+        String enAuthor = translateText(author);
+        String enPlot = translateText(plot);
+        String enCategory = translateText(category);
+
         String prompt = String.format(
-                            "당신은 책 표지 이미지를 디자인하는 AI입니다.\n" +
-                            "아래의 정보를 참고하여 적절한 표지 이미지를 생성해 주세요. 꼭 저자의 이름도 넣어주세요.\n\n" +
-                            "■ 제목: %s\n" +
-                            "■ 저자: %s\n" +
-                            "■ 내용 요약: %s\n" +
-                            "■ 도서 분류: %s\n\n" +
-                            "책의 분위기와 주제를 시각적으로 잘 표현해 주세요. 현실적인 일러스트 스타일로 부탁드립니다.",
-                            title, author, content, category
-                        );
+            "Create a realistic, printable front book cover illustration showing the title and author clearly.\n" +
+            "Title: %s\n" +
+            "Author: %s\n" +
+            "Genre: %s\n" +
+            "Summary: %s\n" +
+            "Use only English text for title and author.",
+            enTitle, enAuthor, enCategory, enPlot
+        );
+
+        System.out.println(prompt);
 
         Map<String, Object> body = Map.of(
-                "prompt", prompt,
-                "n", 1,
-                "size", "512x512"
+            "model", "dall-e-3",
+            "prompt", prompt,
+            "n", 1,
+            "size", "1024x1024"
         );
 
         Request request = new Request.Builder()
-                .url(imageUrl)
+            .url("https://api.openai.com/v1/images/generations")
+            .header("Authorization", "Bearer " + apiKey)
+            .header("Content-Type", "application/json")
+            .post(RequestBody.create(mapper.writeValueAsString(body), MediaType.get("application/json")))
+            .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                String errBody = response.body() != null ? response.body().string() : "no response body";
+                throw new IOException("Image generation failed: " + response.code() + " " + response.message() + " Body: " + errBody);
+            }
+
+            String json = response.body().string();
+            JsonNode dataNode = mapper.readTree(json).get("data");
+            if (dataNode == null || !dataNode.isArray() || dataNode.size() == 0) {
+                throw new IOException("No image URL returned in response");
+            }
+
+            String imageUrl = dataNode.get(0).get("url").asText();
+
+            Request imageRequest = new Request.Builder().url(imageUrl).build();
+            try (Response imageResponse = client.newCall(imageRequest).execute()) {
+                if (!imageResponse.isSuccessful()) {
+                    throw new IOException("Failed to download image: " + imageResponse);
+                }
+                byte[] originalImageBytes = imageResponse.body().bytes();
+
+                return resizeImageToCoverRatio(originalImageBytes);
+            }
+        }
+    }
+
+    private String translateText(String text) throws IOException {
+        String systemMessage = "You are a helpful assistant that translates text into clear, concise English only.\n" +
+                                "Do not add any explanations or extra comments.";
+
+        Map<String, Object> userMessage = Map.of(
+            "role", "user",
+            "content", text
+        );
+        Map<String, Object> systemMsg = Map.of(
+            "role", "system",
+            "content", systemMessage
+        );
+
+        Map<String, Object> body = Map.of(
+            "model", "gpt-4o",
+            "messages", List.of(systemMsg, userMessage),
+            "temperature", 0.0
+        );
+
+        Request request = new Request.Builder()
+                .url(chatUrl)
                 .header("Authorization", "Bearer " + apiKey)
                 .header("Content-Type", "application/json")
                 .post(RequestBody.create(mapper.writeValueAsString(body), MediaType.get("application/json")))
@@ -120,23 +205,54 @@ public class OpenAiService {
             if (!response.isSuccessful()) {
                 throw new IOException("Unexpected code " + response);
             }
-
             String json = response.body().string();
-            String imageUrl = mapper.readTree(json).get("data").get(0).get("url").asText();
-
-            // 이미지 URL에서 이미지 바이트 직접 다운로드
-            Request imageRequest = new Request.Builder().url(imageUrl).build();
-            try (Response imageResponse = client.newCall(imageRequest).execute()) {
-                if (!imageResponse.isSuccessful()) {
-                    throw new IOException("Failed to download image: " + imageResponse);
-                }
-                return imageResponse.body().bytes();
-            }
+            JsonNode root = mapper.readTree(json);
+            String translated = root.get("choices").get(0).get("message").get("content").asText();
+            translated = translated.replace("\n", " ").replace("\"", "").trim();
+            return translated;
         }
     }
 
+
+    private byte[] resizeImageToCoverRatio(byte[] originalImageBytes) throws IOException {
+        BufferedImage originalImage = ImageIO.read(new ByteArrayInputStream(originalImageBytes));
+
+        int targetWidth = 1024;
+        int targetHeight = 1536;
+
+        BufferedImage resizedImage = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g2d = resizedImage.createGraphics();
+
+        // 배경 흰색
+        g2d.setPaint(java.awt.Color.WHITE);
+        g2d.fillRect(0, 0, targetWidth, targetHeight);
+
+        // 이미지 리사이즈 그리기
+        g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2d.drawImage(originalImage, 0, 0, targetWidth, targetHeight, null);
+
+        g2d.dispose();
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ImageIO.write(resizedImage, "jpg", baos);
+        baos.flush();
+        byte[] resizedBytes = baos.toByteArray();
+        baos.close();
+
+        return resizedBytes;
+    }
+
     public String saveBytesToFile(byte[] bytes, String filePath) throws IOException {
-        try (FileOutputStream fos = new FileOutputStream(new File(filePath))) {
+        File file = new File(filePath);
+
+        File parentDir = file.getParentFile();
+        if (parentDir != null && !parentDir.exists()) {
+            parentDir.mkdirs();
+        }
+
+        try (FileOutputStream fos = new FileOutputStream(file)) {
             fos.write(bytes);
         }
 
@@ -144,6 +260,13 @@ public class OpenAiService {
     }
 
     public String saveTextAsPdf(String text, String filePath) throws IOException {
+        File file = new File(filePath);
+
+        File parentDir = file.getParentFile();
+        if (parentDir != null && !parentDir.exists()) {
+            parentDir.mkdirs();
+        }
+
         try (PDDocument document = new PDDocument()) {
             PDPage page = new PDPage();
             document.addPage(page);
@@ -151,25 +274,55 @@ public class OpenAiService {
             try (PDPageContentStream contentStream = new PDPageContentStream(document, page)) {
                 contentStream.beginText();
 
-                // 한글 지원 폰트 로드 (예: NanumGothic.ttf 경로 지정)
                 PDType0Font font = PDType0Font.load(document, new File("/workspace/library_project/serviceai/src/main/resources/NanumGothic.ttf"));
-                contentStream.setFont(font, 12);
+                float fontSize = 12;
+                contentStream.setFont(font, fontSize);
 
                 contentStream.setLeading(14.5f);
-                contentStream.newLineAtOffset(25, 700);
+                float margin = 25;
+                float width = page.getMediaBox().getWidth() - 2 * margin;
+                float startX = margin;
+                float startY = page.getMediaBox().getHeight() - margin;
 
-                String[] lines = text.split("\n");
+                contentStream.newLineAtOffset(startX, startY);
+
+                List<String> lines = splitTextToLines(text, font, fontSize, width);
+
                 for (String line : lines) {
                     contentStream.showText(line);
                     contentStream.newLine();
                 }
+
                 contentStream.endText();
             }
 
-            document.save(filePath);
+            document.save(file);
         }
 
         return filePath;
+    }
+
+    private List<String> splitTextToLines(String text, PDType0Font font, float fontSize, float maxWidth) throws IOException {
+        List<String> lines = new ArrayList<>();
+        String[] paragraphs = text.split("\n");
+
+        for (String paragraph : paragraphs) {
+            StringBuilder line = new StringBuilder();
+            for (char c : paragraph.toCharArray()) {
+                line.append(c);
+                float width = font.getStringWidth(line.toString()) / 1000 * fontSize;
+                if (width > maxWidth) {
+                    // 글자 하나 전까지 잘라서 줄 추가
+                    lines.add(line.substring(0, line.length() - 1));
+                    line = new StringBuilder();
+                    line.append(c);
+                }
+            }
+            if (line.length() > 0) {
+                lines.add(line.toString());
+            }
+        }
+        return lines;
     }
 
 }

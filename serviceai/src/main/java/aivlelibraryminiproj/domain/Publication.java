@@ -3,16 +3,16 @@ package aivlelibraryminiproj.domain;
 import aivlelibraryminiproj.ServiceaiApplication;
 import aivlelibraryminiproj.ai.ApplicationContextProvider;
 import aivlelibraryminiproj.ai.OpenAiService;
-import aivlelibraryminiproj.domain.BookCoverImagePlotRequest;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.time.LocalDate;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import javax.persistence.*;
+
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
 import lombok.Data;
 
+import java.util.Map;
 @Entity
 @Table(name = "Publication_table")
 @Data
@@ -104,14 +104,16 @@ public class Publication {
                 String category = result.get("category");
 
                 // 2. 표지 이미지 생성
-                byte[] coverImageBytes = aiService().generateCoverImage(publication.getTitle(), publication.getAuthorname(), 
-                                                                        publication.getContents(), category);
+                byte[] coverImageBytes = aiService().generateCoverImage(publication.getTitle(), publication.getAuthorname(), plot, category);
 
                 // 3. 줄거리 pdf와 이미지 파일로 저장
                 String baseDir = "/workspace/library_project/files/";
-                String plotUrl = aiService().saveTextAsPdf(plot, baseDir + publication.getId() + "_plot.pdf");
-                String coverImageUrl = aiService().saveBytesToFile(coverImageBytes, baseDir + publication.getId() + "_cover.jpg");
-
+                String plotFileName = baseDir + "plotFile/" + publication.getId() + "_" + publication.getTitle() + "_plot.pdf";
+                String coverFileName = baseDir + "coverImage/" + publication.getId() + "_" + publication.getTitle() + "_cover.jpg";
+                String plotUrl = aiService().saveTextAsPdf(plot, plotFileName);
+                String coverImageUrl = aiService().saveBytesToFile(coverImageBytes, coverFileName);
+                
+                publication.setPlot(plot);
                 publication.setPlotUrl(plotUrl);
                 publication.setCoverImageUrl(coverImageUrl);
                 publication.setCategory(category);
@@ -123,7 +125,6 @@ public class Publication {
                 e.printStackTrace();
             }
             
-
         });
 
     }
