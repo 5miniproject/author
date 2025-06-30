@@ -19,16 +19,16 @@ public class CheckBookViewHandler {
 
     @StreamListener(KafkaProcessor.INPUT)
     public void whenBookPublished_then_CREATE_1(
-        @Payload BookPublished bookPublished
+        @Payload BookRegistered BookRegistered
     ) {
         try {
-            if (!bookPublished.validate()) return;
+            if (!BookRegistered.validate()) return;
 
             // view 객체 생성
             CheckBook checkBook = new CheckBook();
             // view 객체에 이벤트의 Value 를 set 함
-            checkBook.setId(bookPublished.getId());
-            checkBook.setTitle(bookPublished.getTitle());
+            checkBook.setId(BookRegistered.getId());
+            checkBook.setTitle(BookRegistered.getTitle());
             // view 레파지 토리에 save
             checkBookRepository.save(checkBook);
         } catch (Exception e) {

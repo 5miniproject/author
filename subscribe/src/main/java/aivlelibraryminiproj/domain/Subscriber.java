@@ -35,6 +35,17 @@ public class Subscriber {
 
     private Boolean isKt;
 
+
+    // ✨✨✨ 여기에 @PrePersist 메소드를 추가합니다. ✨✨✨
+    @PrePersist
+    public void prePersist() {
+        this.registerDate = new Date(); // 현재 시스템의 날짜와 시간을 registerDate에 설정합니다.
+        // 필요하다면 다른 필드의 기본값도 여기서 설정할 수 있습니다.
+        this.isPurchased = false;
+        this.purchaseDate = null;
+        this.isKt = false;
+    }
+
     @PostPersist
     public void onPostPersist() {
         SubscriberRegistered subscriberRegistered = new SubscriberRegistered(
@@ -54,8 +65,13 @@ public class Subscriber {
     public void purchaseSubscription(
         PurchaseSubscriptionCommand purchaseSubscriptionCommand
     ) {
-        //implement business logic here:
+        // ✨✨✨ 여기에 비즈니스 로직을 구현합니다:
+        // PurchaseSubscriptionCommand에서 받은 값을 Subscriber 애그리게이트의 필드에 설정합니다.
+        this.setIsPurchased(purchaseSubscriptionCommand.getIsPurchased());
+        this.setPurchaseDate(new Date());
 
+        // 애그리게이트의 상태가 업데이트된 후 이벤트를 발행합니다.
+        // 이렇게 발행되는 SubscriptionPurchased 이벤트는 업데이트된 'this' 애그리게이트의 상태를 반영할 것입니다.
         SubscriptionPurchased subscriptionPurchased = new SubscriptionPurchased(
             this
         );

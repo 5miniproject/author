@@ -19,6 +19,7 @@ public class SubscribeBookController {
 
     @Autowired
     SubscribeBookRepository subscribeBookRepository;
+    
     @Autowired // CheckBookRepository 주입
     CheckBookRepository checkBookRepository;
     
@@ -43,6 +44,8 @@ public class SubscribeBookController {
 
         // 4. 책이 존재하면 구독 정보 저장 진행
         System.out.println("##### bookId: " + bookIdToCheck + " 에 해당하는 책을 찾았습니다. 구독을 진행합니다. #####");
+        CheckBook foundBook = optionalCheckBook.get(); // Optional에서 실제 CheckBook 객체를 가져옵니다.
+        subscribeBook.setTitle(foundBook.getTitle()); // 가져온 CheckBook 객체에서 title을 설정합니다.
         return subscribeBookRepository.save(subscribeBook);
     }
 }
