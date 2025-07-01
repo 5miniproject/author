@@ -22,7 +22,7 @@ const hasRole = (role) => {
 const AuthorGridPage = () => {
     // useGridLogic 커스텀 훅을 사용하여 공통 로직을 가져옵니다.
     const {
-        data: authorsData, // <-- 변수명을 authorsData로 변경하여 충돌을 피하고, 원본 데이터를 받습니다.
+        data: authors, // <-- 이제 훅에서 가공된 배열이 반환되므로 authorsData를 authors로 사용합니다.
         loading,
         selectedRow,
         changeSelectedRow,
@@ -32,13 +32,8 @@ const AuthorGridPage = () => {
         setSelectedRow,
         updateRow,
         deleteRow,
+        registerRow // <-- 훅에서 새로 추가된 등록 함수를 가져옵니다.
     } = useGridLogic('authors');
-
-    // ** <<< 이 부분이 수정된 핵심 로직입니다 >>> **
-    // HAL 형식의 응답에서 실제 authors 배열을 추출합니다.
-    // authorsData가 없거나 _embedded 객체가 없을 경우를 대비하여 Optional Chaining (?.)과 
-    // 기본값 빈 배열(|| [])을 사용해 map() 오류를 방지합니다.
-    const authors = authorsData?._embedded?.authors || [];
 
     const [openDialog, setOpenDialog] = useState(false); // 등록 다이얼로그
     const [editDialog, setEditDialog] = useState(false); // 수정 다이얼로그
@@ -52,21 +47,15 @@ const AuthorGridPage = () => {
         setOpenDialog(true);
     };
 
+    // ** <<< handleRegisterAuthor 함수가 수정되었습니다 >>> **
     const handleRegisterAuthor = async () => {
-        try {
-            // Command: 작가등록
-            // apiService.post('/authors', newAuthor); <-- 이 부분을 수정합니다.
-            // 기존 로그에서 확인된 'register' 엔드포인트로 요청을 보냅니다.
-            await apiService.post('/authors', newAuthor);
-            
-            showSnackbar('작가 등록 요청이 완료되었습니다.', 'success');
+        // useGridLogic에서 반환된 registerRow 함수를 사용합니다.
+        const success = await registerRow(newAuthor);
+        if (success) {
             setOpenDialog(false);
-            fetchData(); // 데이터 갱신
-        } catch (error) {
-            // eslint-disable-next-line no-console
-            console.error('작가 등록 실패:', error);
-            showSnackbar('작가 등록에 실패했습니다.', 'error');
+            // fetchData(); // Optimistic update를 사용하므로 굳이 refetch할 필요는 없습니다.
         }
+        // showSnackbar와 console.error는 registerRow 함수 내에서 처리됩니다.
     };
     
     const openEditDialog = () => {
@@ -77,42 +66,36 @@ const AuthorGridPage = () => {
 
     const handleSaveEdit = async () => {
         if (selectedRow) {
-            await updateRow(selectedRow); // useGridLogic의 updateRow 사용
+            await updateRow(selectedRow);
             setEditDialog(false);
         }
     };
 
-    // ** <<< 작가 승인 API 호출 로직이 수정되었습니다 >>> **
     const approveAuthor = async () => {
         if (!selectedRow) return;
         try {
-            // Command: 작가승인
-            // API 명세에 따라 isApprove: true를 담아 요청을 보냅니다.
-            const endpoint = `/authors/${selectedRow.id}/approveauthor`; // 소문자 'a'로 엔드포인트 수정
-            const payload = { isApprove: true }; // 백엔드가 기대하는 요청 본문 데이터
-            
-            await apiService.put(endpoint, payload); // 수정된 payload를 전송
-            
+            const endpoint = `/authors/${selectedRow.id}/approveauthor`; 
+            const payload = { isApprove: true }; 
+            await apiService.put(endpoint, payload); 
             showSnackbar('작가 승인 성공적으로 처리되었습니다.', 'success');
             setApproveAuthorDialog(false);
-            fetchData(); // 데이터 갱신
+            fetchData();
         } catch (error) {
-            // eslint-disable-next-line no-console
             console.error('작가 승인 실패:', error);
             showSnackbar('작가 승인에 실패했습니다.', 'error');
         }
     };
-
-    const rejectAuthor = async (params) => {
+    
+    const rejectAuthor = async () => {
         if (!selectedRow) return;
         try {
-            // Command: 작가거부
-            const updatedAuthor = { ...selectedRow, isApprove: false };
-            await updateRow(updatedAuthor); // 거부 상태 업데이트
+            const endpoint = `/authors/${selectedRow.id}/rejectauthor`; 
+            const payload = { isApprove: false }; 
+            await apiService.put(endpoint, payload); 
             showSnackbar('작가 거부 성공적으로 처리되었습니다.', 'success');
             setRejectAuthorDialog(false);
+            fetchData();
         } catch (error) {
-            // eslint-disable-next-line no-console
             console.error('작가 거부 실패:', error);
             showSnackbar('작가 거부에 실패했습니다.', 'error');
         }
@@ -120,7 +103,6 @@ const AuthorGridPage = () => {
 
     return (
         <div style={{ padding: '20px' }}>
-            {/* 1. Snackbar */}
             {snackbar.status && (
                 <div style={{ position: 'fixed', bottom: '20px', right: '20px', padding: '15px', backgroundColor: snackbar.color === 'success' ? '#4CAF50' : '#F44336', color: 'white', borderRadius: '5px' }}>
                     {snackbar.message}
@@ -128,18 +110,25 @@ const AuthorGridPage = () => {
                 </div>
             )}
 
-            {/* 2. Button Panel */}
             <div style={{ marginBottom: '20px' }}>
                 <button onClick={addNewRow} style={{ marginRight: '5px' }}>등록</button>
                 <button onClick={openEditDialog} disabled={!selectedRow} style={{ marginRight: '5px' }}>수정</button>
                 <button onClick={() => setApproveAuthorDialog(true)} disabled={!selectedRow || !hasRole('Admin')} style={{ marginRight: '5px' }}>작가승인</button>
                 <button onClick={() => setRejectAuthorDialog(true)} disabled={!selectedRow || !hasRole('Admin')}>작가거부</button>
             </div>
-
-            {/* 3. Search Panel (EbookStatisticsView) */}
+            
+            {selectedRow && (
+                <div style={{ padding: '15px', marginBottom: '20px', border: '1px solid #ccc', borderRadius: '5px', backgroundColor: '#f9f9f9' }}>
+                    <h4 style={{ margin: '0 0 10px 0' }}>선택된 작가</h4>
+                    <p style={{ margin: '5px 0' }}><strong>ID:</strong> {selectedRow.id}</p>
+                    <p style={{ margin: '5px 0' }}><strong>Email:</strong> {selectedRow.email}</p>
+                    <p style={{ margin: '5px 0' }}><strong>Name:</strong> {selectedRow.name}</p>
+                    <button onClick={() => setSelectedRow(null)} style={{ marginTop: '10px', padding: '5px 10px' }}>선택 해제</button>
+                </div>
+            )}
+            
             <EbookStatisticsView onSearch={fetchData} />
 
-            {/* 4. Data Table */}
             <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px' }}>
                     <thead>
@@ -157,11 +146,13 @@ const AuthorGridPage = () => {
                         {loading ? (
                             <tr><td colSpan="7" style={{ textAlign: 'center', padding: '20px' }}>Loading...</td></tr>
                         ) : (
-                            // ** authors 대신 authorsList를 사용하도록 수정 **
                             authors.map((author, index) => (
                                 <tr
                                     key={author.id || index}
-                                    onClick={() => changeSelectedRow(author)}
+                                    onClick={() => {
+                                        changeSelectedRow(author);
+                                        console.log('선택된 작가:', author); 
+                                    }}
                                     style={{ cursor: 'pointer', backgroundColor: selectedRow?.id === author.id ? '#e0f7fa' : 'white', borderBottom: '1px solid #eee' }}
                                 >
                                     <td style={{ padding: '12px' }}>{index + 1}</td>
@@ -180,7 +171,6 @@ const AuthorGridPage = () => {
                 </table>
             </div>
 
-            {/* 5. Register Dialog */}
             {openDialog && (
                 <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1000, width: '400px', backgroundColor: 'white', padding: '30px', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -196,7 +186,6 @@ const AuthorGridPage = () => {
                             <label style={{ display: 'block', marginBottom: '5px' }}>Name</label>
                             <input type="text" value={newAuthor.name} onChange={(e) => setNewAuthor({...newAuthor, name: e.target.value})} style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }} />
                         </div>
-                        {/* <<< 이 부분에 Detail과 Portfolio 입력 필드를 추가합니다 >>> */}
                         <div style={{ marginBottom: '15px' }}>
                             <label style={{ display: 'block', marginBottom: '5px' }}>Detail</label>
                             <input type="text" value={newAuthor.detail} onChange={(e) => setNewAuthor({...newAuthor, detail: e.target.value})} style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }} />
@@ -205,13 +194,11 @@ const AuthorGridPage = () => {
                             <label style={{ display: 'block', marginBottom: '5px' }}>Portfolio</label>
                             <input type="text" value={newAuthor.portfolio} onChange={(e) => setNewAuthor({...newAuthor, portfolio: e.target.value})} style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }} />
                         </div>
-                        {/* <<< 추가 끝 >>> */}
                         <button onClick={handleRegisterAuthor} style={{ width: '100%', padding: '10px', backgroundColor: '#007bff', color: 'white', border: 'none' }}>등록</button>
                     </div>
                 </div>
             )}
 
-            {/* 6. Edit Dialog */}
             {editDialog && selectedRow && (
                 <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1000, width: '400px', backgroundColor: 'white', padding: '30px', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -232,7 +219,6 @@ const AuthorGridPage = () => {
                 </div>
             )}
 
-            {/* 7. Approve Author Dialog */}
             {approveAuthorDialog && selectedRow && (
                 <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1000 }}>
                     <ApproveAuthor
@@ -242,7 +228,6 @@ const AuthorGridPage = () => {
                 </div>
             )}
             
-            {/* 8. Reject Author Dialog */}
             {rejectAuthorDialog && selectedRow && (
                 <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1000 }}>
                     <RejectAuthor
