@@ -29,8 +29,16 @@ public class SubscribeBookController {
 
         // 1. 요청된 bookId의 유효성 검사
         Long bookIdToCheck = subscribeBook.getBookId();
-        if (bookIdToCheck == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Book ID는 필수 값입니다.");
+        Long subscriberIdToCheck = subscribeBook.getSubscriberId();
+        if (bookIdToCheck == null || subscriberIdToCheck == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Book ID와 SubscriberId는 필수 값입니다.");
+        }
+        
+        // 이미 구독 중인지 확인
+        boolean alreadySubscribed = subscribeBookRepository.existsBySubscriberIdAndBookId(subscriberIdToCheck, bookIdToCheck);
+        if (alreadySubscribed) {
+            System.out.println("##### 구독자가 이미 bookId: " + bookIdToCheck + " 를 구독 중입니다. #####");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "이미 구독 중인 책입니다.");
         }
 
         // 2. 읽기 모델(CheckBook)에서 bookId 존재 여부 확인
