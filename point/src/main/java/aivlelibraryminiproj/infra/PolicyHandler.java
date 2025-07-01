@@ -76,11 +76,9 @@ public class PolicyHandler {
                 System.out.println("포인트 부족: 사용자 ID = " + point.getUserId());
                 // 부족 이벤트 발행 (설계와 다이어그램 반영)
                 PointShorted shorted = new PointShorted(point);
-                shorted.setPoint(usedPoint);
-                shorted.publishAfterCommit();
-
+                // shorted.setPoint(usedPoint);
                 // 👇 이벤트 객체의 subscriptionId 필드에 event에서 받은 subscriptionId를 세팅
-                shorted.setSubscriptionId(event.getSubscriberId());
+                shorted.setSubscriptionId(event.getId());
                 shorted.publishAfterCommit();
             }
         } else {
