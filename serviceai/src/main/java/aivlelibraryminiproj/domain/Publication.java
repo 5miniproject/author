@@ -125,7 +125,7 @@ public class Publication {
                 publication.setPlotUrl(plotUrl);
                 publication.setCoverImageUrl(coverImageUrl);
                 publication.setCategory(category);
-                publication.setSubscriptionFee(100);
+                publication.setSubscriptionFee(1000);
                 publication.setStatus("이미지/줄거리 생성완료");
 
                 repository().save(publication);
