@@ -27,6 +27,7 @@ const App = () => {
                     <Route path='/authors' element={<AuthorGridPage />} />
                     <Route path='/manuscripts' element={<ManuscriptPage />} />
                     <Route path='/books' element={<BookListPage />} />
+                    <Route path="/books/:bookId" element={<BookDetailPage />} />
                     <Route path='/ai-service' element={<AIPage />} />
                     <Route path='/subscriptions' element={<SubscriptionPage />} />
                     <Route path='/points' element={<PointPage />} />
