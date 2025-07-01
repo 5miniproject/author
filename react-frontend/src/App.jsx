@@ -7,6 +7,7 @@ import SubscriptionPage from './pages/SubscriptionManagement/SubscriptionPage';
 import AuthorGridPage from './pages/AuthorManagement/AuthorGridPage';
 import ManuscriptPage from './pages/ManuscriptManagement/ManuscriptPage';
 import BookListPage from './pages/BookManagement/BookListPage';
+import BookDetailPage from './pages/BookManagement/BookDetailPage';
 import AIPage from './pages/AIService/AIPage';
 
 const App = () => {

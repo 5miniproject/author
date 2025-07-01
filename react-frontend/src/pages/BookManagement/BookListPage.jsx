@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import apiService from '../../api/apiService';
 
 const BookListPage = () => {
@@ -14,8 +15,8 @@ const BookListPage = () => {
             // BookSummaryDto 호출
             const response = await apiService.get('/books');
             
-            // setBooks(response.data);
-            setBooks(response.data.content);
+            const bookList = response.data.content || [];
+            setBooks(bookList);
         } catch (error) {
             // eslint-disable-next-line no-console
             console.error('책 목록 조회 실패:', error);
@@ -54,6 +55,7 @@ const BookListPage = () => {
                     <li key={book.id} style={{ border: '1px solid #ccc', margin: '10px', padding: '10px' }}>
                         <h4>
                             {/* isBestSeller 필드를 사용하여 배지 표시 */}
+                            {console.log(book.isBestSeller)}
                             {book.isBestSeller && <span style={{ color: 'red', fontWeight: 'bold' }}>[BEST] </span>}
                             {book.title}
                         </h4>
