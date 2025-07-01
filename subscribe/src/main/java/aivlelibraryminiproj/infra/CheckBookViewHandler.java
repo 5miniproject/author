@@ -30,6 +30,8 @@ public class CheckBookViewHandler {
             checkBook.setId(BookRegistered.getId());
             checkBook.setTitle(BookRegistered.getTitle());
             checkBook.setAuthorId(BookRegistered.getAuthorId());
+            checkBook.setSubscriptionFee(BookRegistered.getSubscriptionFee());
+            checkBook.setIsBestSeller(BookRegistered.getIsBest());
             // view 레파지 토리에 save
             checkBookRepository.save(checkBook);
         } catch (Exception e) {
