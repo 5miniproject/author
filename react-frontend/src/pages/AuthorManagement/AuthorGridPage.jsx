@@ -155,7 +155,7 @@ const AuthorGridPage = () => {
                                     }}
                                     style={{ cursor: 'pointer', backgroundColor: selectedRow?.id === author.id ? '#e0f7fa' : 'white', borderBottom: '1px solid #eee' }}
                                 >
-                                    <td style={{ padding: '12px' }}>{index + 1}</td>
+                                    <td style={{ padding: '12px' }}>{author.id}</td>
                                     <td style={{ padding: '12px' }}>{author.email}</td>
                                     <td style={{ padding: '12px' }}>{author.name}</td>
                                     <td style={{ padding: '12px' }}>{author.detail}</td>

@@ -8,8 +8,8 @@ const Header = () => (
             <Link to='/' style={{ marginRight: '15px' }}>홈</Link>
             <Link to='/authors' style={{ marginRight: '15px' }}>작가 관리</Link>
             <Link to='/manuscripts' style={{ marginRight: '15px' }}>원고 관리</Link>
-            <Link to='/books' style={{ marginRight: '15px' }}>서재 플랫폼</Link>
             <Link to='/ai-service' style={{ marginRight: '15px' }}>AI 서비스</Link>
+            <Link to='/books' style={{ marginRight: '15px' }}>서재 플랫폼</Link>
             <Link to='/subscriptions' style={{ marginRight: '15px' }}>구독 관리</Link>
             <Link to='/points'>포인트 관리</Link>
         </nav>

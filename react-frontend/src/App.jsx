@@ -1,13 +1,15 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import PointPage from './pages/PointManagement/PointPage';
 import SubscriptionPage from './pages/SubscriptionManagement/SubscriptionPage';
 import AuthorGridPage from './pages/AuthorManagement/AuthorGridPage';
-import ManuscriptPage from './pages/ManuscriptManagement/ManuscriptPage';
+import ManuscriptGridPage from './pages/ManuscriptManagement/ManuscriptGridPage';
 import BookListPage from './pages/BookManagement/BookListPage';
-import AIPage from './pages/AIService/AIPage';
+
+import BookDetailPage from './pages/BookManagement/BookDetailPage';
+const PublicationGridPage = lazy(() => import('./pages/AIService/PublicationGridPage.jsx'));
 
 const App = () => {
     return (
@@ -25,10 +27,10 @@ const App = () => {
                         }
                     />
                     <Route path='/authors' element={<AuthorGridPage />} />
-                    <Route path='/manuscripts' element={<ManuscriptPage />} />
+                    <Route path='/manuscripts' element={<ManuscriptGridPage />} />
                     <Route path='/books' element={<BookListPage />} />
+                    <Route path='/ai-service' element={<PublicationGridPage />} />
                     <Route path="/books/:bookId" element={<BookDetailPage />} />
-                    <Route path='/ai-service' element={<AIPage />} />
                     <Route path='/subscriptions' element={<SubscriptionPage />} />
                     <Route path='/points' element={<PointPage />} />
                 </Routes>
