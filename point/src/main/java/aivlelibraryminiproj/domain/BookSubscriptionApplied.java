@@ -16,4 +16,6 @@ public class BookSubscriptionApplied extends AbstractEvent {
     private Date subscriptionDate;
     private Date subscriptionExpiredDate;
     private String title;
+    private Integer subscriptionFee;
+    private Boolean isBestSeller;
 }

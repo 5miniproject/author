@@ -27,6 +27,8 @@ public class Point {
 
     private Boolean isKt;
 
+    private Boolean isPurchased;
+
     public static PointRepository repository() {
         PointRepository pointRepository = PointApplication.applicationContext.getBean(
             PointRepository.class
@@ -36,29 +38,16 @@ public class Point {
 
     //<<< Clean Arch / Port Method
     public static void pointAdd(SubscriberRegistered subscriberRegistered) {
-        //implement business logic here:
 
-        /** Example 1:  new item 
         Point point = new Point();
+        point.setUserId(subscriberRegistered.getId());
+        point.setIsKt(subscriberRegistered.getIsKt());
+        point.setPoint(subscriberRegistered.getIsKt() ? 5000 : 1000);
+        point.setIsPurchased(subscriberRegistered.getIsPurchased());
         repository().save(point);
 
         PointAdded pointAdded = new PointAdded(point);
         pointAdded.publishAfterCommit();
-        */
-
-        /** Example 2:  finding and process
-        
-
-        repository().findById(subscriberRegistered.get???()).ifPresent(point->{
-            
-            point // do something
-            repository().save(point);
-
-            PointAdded pointAdded = new PointAdded(point);
-            pointAdded.publishAfterCommit();
-
-         });
-        */
 
     }
 
@@ -67,36 +56,37 @@ public class Point {
     public static void pointUse(
         BookSubscriptionApplied bookSubscriptionApplied
     ) {
-        //implement business logic here:
 
-        /** Example 1:  new item 
-        Point point = new Point();
-        repository().save(point);
-
-        PointDecreased pointDecreased = new PointDecreased(point);
-        pointDecreased.publishAfterCommit();
-        PointShorted pointShorted = new PointShorted(point);
-        pointShorted.publishAfterCommit();
-        */
-
-        /** Example 2:  finding and process
-        
-
-        repository().findById(bookSubscriptionApplied.get???()).ifPresent(point->{
+        repository().findById(bookSubscriptionApplied.getSubscriberId()).ifPresent(point->{
             
-            point // do something
-            repository().save(point);
+            Integer usePoint = point.getIsPurchased() ? 0 : bookSubscriptionApplied.getSubscriptionFee();
+            
+            if(point.getPoint() >= usePoint){
+                point.setPoint(point.getPoint() - usePoint);
 
-            PointDecreased pointDecreased = new PointDecreased(point);
-            pointDecreased.publishAfterCommit();
-            PointShorted pointShorted = new PointShorted(point);
-            pointShorted.publishAfterCommit();
+                PointDecreased pointDecreased = new PointDecreased(point);
+                pointDecreased.publishAfterCommit();
+                repository().save(point);
+            }else{
+                PointShorted pointShorted = new PointShorted(point);
+                pointShorted.publishAfterCommit();
+            }
 
          });
-        */
 
     }
     //>>> Clean Arch / Port Method
+
+    public static void subscriptionPurchased(
+        SubscriptionPurchased subscriptionPurchased
+    ) {
+
+        repository().findById(subscriptionPurchased.getId()).ifPresent(point->{
+            point.setIsPurchased(true);
+            repository().save(point);
+         });
+
+    }
 
 }
 //>>> DDD / Aggregate Root
