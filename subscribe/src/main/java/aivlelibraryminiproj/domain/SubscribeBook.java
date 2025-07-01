@@ -93,7 +93,7 @@ public class SubscribeBook {
     public static void bookSubscriptionFail(PointShorted pointShorted) {
         // PointShorted 이벤트에서 'subcribeId'를 사용하여 해당 구독을 식별하고 실패 처리합니다.
 
-        Long subscriptionIdToFail = pointShorted.getSubcribeId(); // PointShorted에서 구독 ID를 가져옴
+        Long subscriptionIdToFail = pointShorted.getSubscriptionId(); // PointShorted에서 구독 ID를 가져옴
 
         // 1. 해당 구독 ID를 가진 SubscribeBook 애그리게이트를 데이터베이스에서 찾습니다.
         repository().findById(subscriptionIdToFail).ifPresent(subscribeBook -> {

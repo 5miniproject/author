@@ -22,7 +22,7 @@ const hasRole = (role) => {
 const AuthorGridPage = () => {
     // useGridLogic 커스텀 훅을 사용하여 공통 로직을 가져옵니다.
     const {
-        data: authors,
+        data: authorsData, // <-- 변수명을 authorsData로 변경하여 충돌을 피하고, 원본 데이터를 받습니다.
         loading,
         selectedRow,
         changeSelectedRow,
@@ -33,6 +33,12 @@ const AuthorGridPage = () => {
         updateRow,
         deleteRow,
     } = useGridLogic('authors');
+
+    // ** <<< 이 부분이 수정된 핵심 로직입니다 >>> **
+    // HAL 형식의 응답에서 실제 authors 배열을 추출합니다.
+    // authorsData가 없거나 _embedded 객체가 없을 경우를 대비하여 Optional Chaining (?.)과 
+    // 기본값 빈 배열(|| [])을 사용해 map() 오류를 방지합니다.
+    const authors = authorsData?._embedded?.authors || [];
 
     const [openDialog, setOpenDialog] = useState(false); // 등록 다이얼로그
     const [editDialog, setEditDialog] = useState(false); // 수정 다이얼로그
@@ -49,7 +55,10 @@ const AuthorGridPage = () => {
     const handleRegisterAuthor = async () => {
         try {
             // Command: 작가등록
-            await apiService.post('/authors/register', newAuthor);
+            // apiService.post('/authors', newAuthor); <-- 이 부분을 수정합니다.
+            // 기존 로그에서 확인된 'register' 엔드포인트로 요청을 보냅니다.
+            await apiService.post('/authors', newAuthor);
+            
             showSnackbar('작가 등록 요청이 완료되었습니다.', 'success');
             setOpenDialog(false);
             fetchData(); // 데이터 갱신
@@ -73,14 +82,20 @@ const AuthorGridPage = () => {
         }
     };
 
-    const approveAuthor = async (params) => {
+    // ** <<< 작가 승인 API 호출 로직이 수정되었습니다 >>> **
+    const approveAuthor = async () => {
         if (!selectedRow) return;
         try {
             // Command: 작가승인
-            const updatedAuthor = { ...selectedRow, isApprove: true };
-            await updateRow(updatedAuthor); // 승인 상태 업데이트
+            // API 명세에 따라 isApprove: true를 담아 요청을 보냅니다.
+            const endpoint = `/authors/${selectedRow.id}/approveauthor`; // 소문자 'a'로 엔드포인트 수정
+            const payload = { isApprove: true }; // 백엔드가 기대하는 요청 본문 데이터
+            
+            await apiService.put(endpoint, payload); // 수정된 payload를 전송
+            
             showSnackbar('작가 승인 성공적으로 처리되었습니다.', 'success');
             setApproveAuthorDialog(false);
+            fetchData(); // 데이터 갱신
         } catch (error) {
             // eslint-disable-next-line no-console
             console.error('작가 승인 실패:', error);
@@ -142,6 +157,7 @@ const AuthorGridPage = () => {
                         {loading ? (
                             <tr><td colSpan="7" style={{ textAlign: 'center', padding: '20px' }}>Loading...</td></tr>
                         ) : (
+                            // ** authors 대신 authorsList를 사용하도록 수정 **
                             authors.map((author, index) => (
                                 <tr
                                     key={author.id || index}
@@ -180,6 +196,16 @@ const AuthorGridPage = () => {
                             <label style={{ display: 'block', marginBottom: '5px' }}>Name</label>
                             <input type="text" value={newAuthor.name} onChange={(e) => setNewAuthor({...newAuthor, name: e.target.value})} style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }} />
                         </div>
+                        {/* <<< 이 부분에 Detail과 Portfolio 입력 필드를 추가합니다 >>> */}
+                        <div style={{ marginBottom: '15px' }}>
+                            <label style={{ display: 'block', marginBottom: '5px' }}>Detail</label>
+                            <input type="text" value={newAuthor.detail} onChange={(e) => setNewAuthor({...newAuthor, detail: e.target.value})} style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }} />
+                        </div>
+                        <div style={{ marginBottom: '15px' }}>
+                            <label style={{ display: 'block', marginBottom: '5px' }}>Portfolio</label>
+                            <input type="text" value={newAuthor.portfolio} onChange={(e) => setNewAuthor({...newAuthor, portfolio: e.target.value})} style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }} />
+                        </div>
+                        {/* <<< 추가 끝 >>> */}
                         <button onClick={handleRegisterAuthor} style={{ width: '100%', padding: '10px', backgroundColor: '#007bff', color: 'white', border: 'none' }}>등록</button>
                     </div>
                 </div>
