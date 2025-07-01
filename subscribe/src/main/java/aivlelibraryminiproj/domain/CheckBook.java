@@ -19,4 +19,8 @@ public class CheckBook {
     private String title;
     
     private Long authorId;
+
+    private Integer subscriptionFee;
+
+    private Boolean isBestSeller;
 }
