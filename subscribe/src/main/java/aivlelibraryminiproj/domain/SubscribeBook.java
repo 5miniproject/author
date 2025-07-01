@@ -76,10 +76,18 @@ public class SubscribeBook {
 
     @PostRemove
     public void onPostRemove() {
-        BookSubscriptionCancelled bookSubscriptionCancelled = new BookSubscriptionCancelled(
-            this
-        );
-        bookSubscriptionCancelled.publishAfterCommit();
+        // 엔티티가 삭제되기 직전의 상태를 확인합니다.
+        // 만약 bookSubscriptionFail 함수에서 status를 "FAILED"로 설정하고 삭제했다면,
+        // 이 시점의 status는 "FAILED"일 것입니다.
+        if (!"FAILED".equals(this.getStatus())) { // status가 "FAILED"가 아닐 때만 취소 이벤트를 발행
+            BookSubscriptionCancelled bookSubscriptionCancelled = new BookSubscriptionCancelled(
+                this
+            );
+            bookSubscriptionCancelled.publishAfterCommit();
+            System.out.println("##### 구독 ID: " + this.getId() + " 에 대한 구독이 취소되어 BookSubscriptionCancelled 이벤트가 발행되었습니다. #####");
+        } else {
+            System.out.println("##### 구독 ID: " + this.getId() + " 에 대한 구독이 실패로 인해 삭제되었으므로 BookSubscriptionCancelled 이벤트는 발행되지 않았습니다. #####");
+        }
     }
 
     public static SubscribeBookRepository repository() {
@@ -104,8 +112,11 @@ public class SubscribeBook {
 
             // 3. 변경된 SubscribeBook 애그리게이트를 저장합니다.
             repository().save(subscribeBook);
+            // 4. SubscribeBook 엔티티를 데이터베이스에서 삭제합니다.
+            // 이 시점에 @PostRemove 콜백이 호출됩니다.
+            repository().delete(subscribeBook);
 
-            // 4. 업데이트된 SubscribeBook 애그리게이트의 정보를 담아 BookSubscriptionFailed 이벤트를 발행합니다.
+            // 5. 업데이트된 SubscribeBook 애그리게이트의 정보를 담아 BookSubscriptionFailed 이벤트를 발행합니다.
             // 이렇게 하면 발행되는 실패 이벤트가 정확한 구독 정보(ID, 책 ID, 구독자 ID, 제목 등)를 가지게 됩니다.
             BookSubscriptionFailed bookSubscriptionFailed = new BookSubscriptionFailed(subscribeBook);
             bookSubscriptionFailed.publishAfterCommit();
