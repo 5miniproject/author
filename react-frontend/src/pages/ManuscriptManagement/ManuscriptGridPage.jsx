@@ -152,12 +152,10 @@ const ManuscriptGridPage = () => {
                             <tr><td colSpan="9" style={{ textAlign: 'center', padding: '20px' }}>Loading...</td></tr>
                         ) : (
                             manuscripts.map((script, index) => (
-                                <tr
-                                    key={script.id || index}
+                                <tr key={script.id || index}
                                     onClick={() => changeSelectedRow(script)}
                                     style={{ cursor: 'pointer', backgroundColor: selectedRow?.id === script.id ? '#e0f7fa' : 'white', borderBottom: '1px solid #eee' }}
-                                >
-                                    <td style={{ padding: '12px' }}>{script.id}</td> {/* 실제 ID 표시 */}
+                                ><td style={{ padding: '12px' }}>{script.id}</td>
                                     <td style={{ padding: '12px' }}>{script.authorId}</td>
                                     <td style={{ padding: '12px' }}>{script.contents?.substring(0, 50)}...</td>
                                     <td style={{ padding: '12px' }}>{script.status}</td>

@@ -11,7 +11,10 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 )
 public interface EbookStatisticsViewRepository
     extends PagingAndSortingRepository<EbookStatisticsView, Long> {
+    
     List<EbookStatisticsView> findByBookId(Long bookId);
+
+    List<EbookStatisticsView> findByAuthorId(Long authorId);
 
     void deleteByBookId(Long bookId);
 }

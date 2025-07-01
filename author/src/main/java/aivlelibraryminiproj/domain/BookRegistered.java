@@ -12,7 +12,7 @@ public class BookRegistered extends AbstractEvent {
     private Long authorId;
     private Long publicationId;
     private String contents;
-    private String coverImageURL;
+    private String coverImageUrl;
     private String plot;
     private String status;
     private String category;
