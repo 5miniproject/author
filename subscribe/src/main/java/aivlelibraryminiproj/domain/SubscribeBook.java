@@ -49,7 +49,7 @@ public class SubscribeBook {
         this.subscriptionDate = Date.from(now); // Instant를 java.util.Date로 변환하여 설정
         // 2. subscriptionExpiredDate를 subscriptionDate로부터 1년 추가하여 설정
         // Instant에 1년(ChronoUnit.YEARS)을 더한 후 다시 java.util.Date로 변환합니다.
-        this.subscriptionExpiredDate = Date.from(now.plus(1, ChronoUnit.YEARS));
+        //this.subscriptionExpiredDate = Date.from(now.plus(1, ChronoUnit.YEARS));
 
         // 3. isSubscribed 필드 초기값 설정
         // 구독 신청 시에는 보통 'true'로 시작합니다.
