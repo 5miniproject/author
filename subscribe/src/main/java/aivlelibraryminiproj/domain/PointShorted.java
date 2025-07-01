@@ -11,5 +11,5 @@ public class PointShorted extends AbstractEvent {
 
     private Long userId;
     private Integer point;
-    private Long subcribeId;
+    private Long subscriptionId;
 }
