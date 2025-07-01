@@ -31,6 +31,7 @@ public class BookScriptsOpenViewHandler {
             bookScriptsOpen.setAuthorId(scriptCreated.getAuthorId());
             bookScriptsOpen.setContents(scriptCreated.getContents());
             bookScriptsOpen.setStatus(scriptCreated.getStatus());
+            bookScriptsOpen.setTitle(scriptCreated.getTitle());
             bookScriptsOpen.setCreatedAt(scriptCreated.getCreatedAt());
             bookScriptsOpen.setUpdateAt(scriptCreated.getUpdatedAt());
             // view 레파지 토리에 save
@@ -58,6 +59,31 @@ public class BookScriptsOpenViewHandler {
                 bookScriptsOpen.setContents(scriptEdited.getContents());
                 bookScriptsOpen.setUpdateAt(scriptEdited.getUpdatedAt());
                 // view 레파지 토리에 save
+                bookScriptsOpenRepository.save(bookScriptsOpen);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    @StreamListener(KafkaProcessor.INPUT)
+    public void whenBookPublishRequested_then_UPDATE_Status(
+        @Payload BookPublishRequested bookPublishRequested
+    ) {
+        try {
+            if (!bookPublishRequested.validate()) return;
+
+            Optional<BookScriptsOpen> bookScriptsOpenOptional = bookScriptsOpenRepository.findById(
+                bookPublishRequested.getId()
+            );
+
+            if (bookScriptsOpenOptional.isPresent()) {
+                BookScriptsOpen bookScriptsOpen = bookScriptsOpenOptional.get();
+
+                // status 업데이트
+                bookScriptsOpen.setStatus(bookPublishRequested.getStatus());
+                // 필요 시 업데이트 시각 갱신
+                // bookScriptsOpen.setUpdateAt(bookPublishRequested.getUpdatedAt());
+
                 bookScriptsOpenRepository.save(bookScriptsOpen);
             }
         } catch (Exception e) {
