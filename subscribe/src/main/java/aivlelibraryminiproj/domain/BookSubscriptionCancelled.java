@@ -19,6 +19,8 @@ public class BookSubscriptionCancelled extends AbstractEvent {
     private String status;
     private Date subscriptionDate;
     private Date subscriptionExpiredDate;
+    private Integer subscriptionFee;
+    private Boolean isBestSeller;
 
     public BookSubscriptionCancelled(SubscribeBook aggregate) {
         super(aggregate);

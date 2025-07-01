@@ -41,6 +41,10 @@ public class SubscribeBook {
     private Date subscriptionDate;
     
     private Date subscriptionExpiredDate;
+    
+    private Integer subscriptionFee;
+    
+    private Boolean isBestSeller;
 
     @PrePersist
     public void prePersist() {

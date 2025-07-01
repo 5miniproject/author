@@ -5,6 +5,7 @@ import aivlelibraryminiproj.domain.*;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+import org.hibernate.annotations.Check;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.annotation.StreamListener;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -38,6 +39,63 @@ public class CheckBookViewHandler {
             e.printStackTrace();
         }
     }
+
+    @StreamListener(KafkaProcessor.INPUT)
+    public void whenBestSellerArchived_then_UPDATE_1(
+        @Payload BestSellerArchived bestSellerArchived
+    ){
+        try{
+            if(!bestSellerArchived.validate()) return;
+
+            Optional <CheckBook> checkBookOptional = checkBookRepository.findById(bestSellerArchived.getBookId());
+
+            if(checkBookOptional.isPresent()){
+                CheckBook checkBook = checkBookOptional.get();
+                checkBook.setIsBestSeller(bestSellerArchived.getIsBestSeller());
+
+                if(bestSellerArchived.getIsBestSeller()){
+                    checkBook.setSubscriptionFee(1500);
+                }else{
+                    checkBook.setSubscriptionFee(1000);
+                }
+
+                checkBookRepository.save(checkBook);
+
+            }
+
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+
+    @StreamListener(KafkaProcessor.INPUT)
+    public void whenBestSellerCancelled_then_UPDATE_2(
+        @Payload BestSellerCancelled bestSellerCancelled
+    ){
+        try{
+            if(!bestSellerCancelled.validate()) return;
+
+            Optional <CheckBook> checkBookOptional = checkBookRepository.findById(bestSellerCancelled.getBookId());
+
+            if(checkBookOptional.isPresent()){
+                CheckBook checkBook = checkBookOptional.get();
+                checkBook.setIsBestSeller(bestSellerCancelled.getIsBestSeller());
+
+                if(bestSellerCancelled.getIsBestSeller()){
+                    checkBook.setSubscriptionFee(1500);
+                }else{
+                    checkBook.setSubscriptionFee(1000);
+                }
+
+                checkBookRepository.save(checkBook);
+            }
+
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
 
     @StreamListener(KafkaProcessor.INPUT)
     public void whenBookDeleted_then_DELETE_1(
