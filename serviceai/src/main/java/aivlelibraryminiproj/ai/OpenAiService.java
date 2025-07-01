@@ -18,7 +18,11 @@ import javax.imageio.ImageIO;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
+import org.apache.pdfbox.util.Matrix;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -258,41 +262,166 @@ public class OpenAiService {
         return filePath;
     }
 
-    public String saveTextAsPdf(String text, String filePath) throws IOException {
+    public String saveTextAsPdf(String title, String author, String plot, String content, String filePath) throws IOException {
         File file = new File(filePath);
-
         File parentDir = file.getParentFile();
         if (parentDir != null && !parentDir.exists()) {
             parentDir.mkdirs();
         }
 
         try (PDDocument document = new PDDocument()) {
-            PDPage page = new PDPage();
+            PDType0Font font = PDType0Font.load(document, new File("src/main/resources/NanumGothic.ttf"));
+
+            float margin = 40;
+            float normalFontSize = 12f;
+            float titleFontSize = 18f;
+            float headerFontSize = 16f;
+            float leading = 16f;
+
+            float pageWidth = PDRectangle.A4.getWidth();
+            float pageHeight = PDRectangle.A4.getHeight();
+            float usableWidth = pageWidth - 2 * margin;
+
+            List<PDPage> allPages = new ArrayList<>();
+
+            // --- 1. 첫 페이지 생성 ---
+            PDPage page = new PDPage(PDRectangle.A4);
             document.addPage(page);
+            allPages.add(page);
 
-            try (PDPageContentStream contentStream = new PDPageContentStream(document, page)) {
-                contentStream.beginText();
+            PDPageContentStream contentStream = new PDPageContentStream(document, page);
+            contentStream.beginText();
+            contentStream.setLeading(leading);
 
-                PDType0Font font = PDType0Font.load(document, new File("/workspace/library_project/serviceai/src/main/resources/NanumGothic.ttf"));
-                float fontSize = 12;
-                contentStream.setFont(font, fontSize);
+            float currentY = pageHeight - margin;
+            float startX = margin;
+            contentStream.newLineAtOffset(startX, currentY);
 
-                contentStream.setLeading(14.5f);
-                float margin = 25;
-                float width = page.getMediaBox().getWidth() - 2 * margin;
-                float startX = margin;
-                float startY = page.getMediaBox().getHeight() - margin;
+            // --- 제목 중앙 정렬 ---
+            contentStream.setFont(font, titleFontSize);
+            float titleWidth = font.getStringWidth(title) / 1000 * titleFontSize;
+            float titleXOffset = (pageWidth - titleWidth) / 2 - startX;
+            contentStream.newLineAtOffset(titleXOffset, 0);
+            contentStream.showText(title);
+            contentStream.newLine();
+            currentY -= leading;
 
-                contentStream.newLineAtOffset(startX, startY);
+            // --- 저자 (6줄 아래 우측 정렬) ---
+            contentStream.setFont(font, normalFontSize);
+            for (int i = 0; i < 6; i++) {
+                contentStream.newLine();
+                currentY -= leading;
+            }
+            float authorWidth = font.getStringWidth(author) / 1000 * normalFontSize;
+            float authorXOffset = usableWidth - authorWidth - titleXOffset;
+            contentStream.newLineAtOffset(authorXOffset, 0);
+            contentStream.showText(author);
+            contentStream.newLine();
+            currentY -= leading;
 
-                List<String> lines = splitTextToLines(text, font, fontSize, width);
+            // --- 줄거리 헤더까지 6줄 공백 ---
+            for (int i = 0; i < 6; i++) {
+                contentStream.newLine();
+                currentY -= leading;
+            }
 
-                for (String line : lines) {
-                    contentStream.showText(line);
-                    contentStream.newLine();
+            contentStream.endText();
+            contentStream.close();
+
+            // --- 줄거리 헤더 ---
+            contentStream = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true);
+            contentStream.beginText();
+            contentStream.setLeading(leading);
+            currentY -= leading;
+            contentStream.setTextMatrix(Matrix.getTranslateInstance(startX, currentY));
+            contentStream.setFont(font, headerFontSize);
+            contentStream.showText("줄거리");
+            contentStream.newLine();
+            currentY -= leading;
+
+            // --- 헤더와 줄거리 사이 공백 2줄 ---
+            contentStream.newLine();
+            currentY -= leading;
+            contentStream.newLine();
+            currentY -= leading;
+
+            // --- 줄거리 본문 ---
+            contentStream.setFont(font, normalFontSize);
+            List<String> summaryLines = splitTextToLines(plot, font, normalFontSize, usableWidth);
+            for (String line : summaryLines) {
+                if (currentY - leading < margin) break;
+                contentStream.showText(line);
+                contentStream.newLine();
+                currentY -= leading;
+            }
+
+            contentStream.endText();
+            contentStream.close();
+
+            // --- 2. 내용 시작 (두 번째 페이지부터) ---
+            List<String> contentLines = splitTextToLines(content, font, normalFontSize, usableWidth);
+
+            page = new PDPage(PDRectangle.A4);
+            document.addPage(page);
+            allPages.add(page);
+
+            contentStream = new PDPageContentStream(document, page);
+            contentStream.beginText();
+            contentStream.setLeading(leading);
+            currentY = pageHeight - margin;
+            contentStream.newLineAtOffset(startX, currentY);
+
+            // --- "내용" 헤더 ---
+            contentStream.setFont(font, headerFontSize);
+            contentStream.showText("내용");
+            contentStream.newLine();
+            currentY -= leading;
+            contentStream.newLine(); // 헤더와 본문 사이 공백 2줄
+            currentY -= leading;
+
+            // --- 내용 본문 ---
+            contentStream.setFont(font, normalFontSize);
+            for (String line : contentLines) {
+                if (currentY - leading < margin) {
+                    contentStream.endText();
+                    contentStream.close();
+
+                    page = new PDPage(PDRectangle.A4);
+                    document.addPage(page);
+                    allPages.add(page);
+
+                    contentStream = new PDPageContentStream(document, page);
+                    contentStream.beginText();
+                    contentStream.setLeading(leading);
+                    currentY = pageHeight - margin;
+                    contentStream.newLineAtOffset(startX, currentY);
+                    contentStream.setFont(font, normalFontSize);
                 }
+                contentStream.showText(line);
+                contentStream.newLine();
+                currentY -= leading;
+            }
 
-                contentStream.endText();
+            contentStream.endText();
+            contentStream.close();
+
+            // --- 3. 페이지 번호 추가 ---
+            int totalPages = allPages.size();
+            for (int i = 0; i < totalPages; i++) {
+                PDPage pg = allPages.get(i);
+                String pageNumStr = String.format("%d / %d", i + 1, totalPages);
+                float pageFontSize = 10f;
+                float textWidth = font.getStringWidth(pageNumStr) / 1000 * pageFontSize;
+                float centerX = (pageWidth - textWidth) / 2;
+                float bottomY = margin / 2;
+
+                PDPageContentStream footer = new PDPageContentStream(document, pg, PDPageContentStream.AppendMode.APPEND, true);
+                footer.beginText();
+                footer.setFont(font, pageFontSize);
+                footer.setTextMatrix(Matrix.getTranslateInstance(centerX, bottomY));
+                footer.showText(pageNumStr);
+                footer.endText();
+                footer.close();
             }
 
             document.save(file);
@@ -301,26 +430,35 @@ public class OpenAiService {
         return filePath;
     }
 
-    private List<String> splitTextToLines(String text, PDType0Font font, float fontSize, float maxWidth) throws IOException {
+    public List<String> splitTextToLines(String text, PDFont font, float fontSize, float maxWidth) throws IOException {
         List<String> lines = new ArrayList<>();
-        String[] paragraphs = text.split("\n");
 
-        for (String paragraph : paragraphs) {
-            StringBuilder line = new StringBuilder();
-            for (char c : paragraph.toCharArray()) {
-                line.append(c);
-                float width = font.getStringWidth(line.toString()) / 1000 * fontSize;
+        for (String paragraph : text.split("\n")) {
+            if (paragraph.trim().isEmpty()) {
+                // 빈 줄이면 공백 라인 추가 (문단 구분)
+                lines.add("");
+                continue;
+            }
+
+            StringBuilder lineBuilder = new StringBuilder();
+            for (String word : paragraph.split(" ")) {
+                String next = lineBuilder.length() == 0 ? word : lineBuilder + " " + word;
+                float width = font.getStringWidth(next) / 1000 * fontSize;
+
                 if (width > maxWidth) {
-                    // 글자 하나 전까지 잘라서 줄 추가
-                    lines.add(line.substring(0, line.length() - 1));
-                    line = new StringBuilder();
-                    line.append(c);
+                    // 현재 줄이 넘치면 줄바꿈
+                    lines.add(lineBuilder.toString());
+                    lineBuilder = new StringBuilder(word);
+                } else {
+                    lineBuilder = new StringBuilder(next);
                 }
             }
-            if (line.length() > 0) {
-                lines.add(line.toString());
+            
+            if (lineBuilder.length() > 0) {
+                lines.add(lineBuilder.toString());
             }
         }
+
         return lines;
     }
 

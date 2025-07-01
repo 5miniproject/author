@@ -15,6 +15,7 @@ import javax.persistence.Table;
 import lombok.Data;
 
 import java.util.Map;
+
 @Entity
 @Table(name = "Publication_table")
 @Data
@@ -114,7 +115,8 @@ public class Publication {
                 String baseDir = "/workspace/library_project/files/";
                 String plotFileName = baseDir + "plotFile/" + publication.getId() + "_" + publication.getTitle() + "_plot.pdf";
                 String coverFileName = baseDir + "coverImage/" + publication.getId() + "_" + publication.getTitle() + "_cover.jpg";
-                String plotUrl = aiService().saveTextAsPdf(plot, plotFileName);
+                String plotUrl = aiService().saveTextAsPdf(publication.getTitle(), publication.getAuthorname(), 
+                                                            plot, publication.getContents(), plotFileName);
                 String coverImageUrl = aiService().saveBytesToFile(coverImageBytes, coverFileName);
                 
                 publication.setPlot(plot);
