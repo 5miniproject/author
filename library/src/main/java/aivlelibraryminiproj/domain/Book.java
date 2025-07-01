@@ -35,6 +35,7 @@ public class Book {
     private String contents;
 
     @Lob
+    @Column
     private String plot; // 요약
 
     private String plotUrl; // 요약 위치

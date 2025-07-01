@@ -38,6 +38,8 @@ public class Publication {
 
     private String coverImageUrl;
 
+    @Lob
+    @Column
     private String plot;
 
     private String status;
