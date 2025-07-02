@@ -199,9 +199,9 @@ const ManuscriptGridPage = () => {
                     </div>
                     <div>
                         <div style={{ marginBottom: '15px' }}><label>AuthorId</label><input type="text" value={newManuscript.authorId} onChange={(e) => setNewManuscript({...newManuscript, authorId: e.target.value})} style={{ width: '100%', padding: '8px' }} /></div>
+                        <div style={{ marginBottom: '15px' }}><label>Authorname</label><input type="text" value={newManuscript.authorname} onChange={(e) => setNewManuscript({...newManuscript, authorname: e.target.value})} style={{ width: '100%', padding: '8px' }} /></div>
                         <div style={{ marginBottom: '15px' }}><label>Title</label><input type="text" value={newManuscript.title} onChange={(e) => setNewManuscript({...newManuscript, title: e.target.value})} style={{ width: '100%', padding: '8px' }} /></div>
                         <div style={{ marginBottom: '15px' }}><label>Contents</label><textarea value={newManuscript.contents} onChange={(e) => setNewManuscript({...newManuscript, contents: e.target.value})} style={{ width: '100%', padding: '8px', minHeight: '100px' }}></textarea></div>
-                        <div style={{ marginBottom: '15px' }}><label>Authorname</label><input type="text" value={newManuscript.authorname} onChange={(e) => setNewManuscript({...newManuscript, authorname: e.target.value})} style={{ width: '100%', padding: '8px' }} /></div>
                         <button onClick={handleRegisterManuscript} style={{ width: '100%', padding: '10px', backgroundColor: '#007bff', color: 'white', border: 'none' }}>등록</button>
                     </div>
                 </div>
