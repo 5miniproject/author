@@ -1,7 +1,7 @@
 package aivlelibraryminiproj.domain;
 
-// import com.fasterxml.jackson.databind.ObjectMapper;
-// import aivlelibraryminiproj.LibraryApplication;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import aivlelibraryminiproj.LibraryApplication;
 
 import javax.persistence.*;
 import lombok.Data;
@@ -53,22 +53,6 @@ public class Book {
         REGISTERED,      
         DELETED
     }
-    // private Boolean isDeleted;
-
-    // 비즈니스 로직 1. 도서 등록 (생성자 사용)
-    public Book(BookPublished bookPublished) {
-        this.publicationId = bookPublished.getId();
-        this.authorId = bookPublished.getAuthorId();
-        this.authorName = bookPublished.getAuthorname();
-        this.title = bookPublished.getTitle();
-        this.contents = bookPublished.getContents();
-        this.plot = bookPublished.getPlot();
-        this.plotUrl = bookPublished.getPlotUrl();
-        this.coverImageUrl = bookPublished.getCoverImageUrl();
-        this.category = bookPublished.getCategory();
-        this.subscriptionFee = bookPublished.getSubscriptionFee();
-        this.status = BookStatus.REGISTERED;
-    }
 
     @PostPersist
     public void onPostPersist() {
@@ -76,32 +60,60 @@ public class Book {
         bookRegistered.publishAfterCommit();
     }
 
-    // 비즈니스 로직 2. 구독 수 증가 및 베스트셀러 선정
-    public void increaseCountAndCheckBestseller() {
-        this.subscriptionCount++;
-
-        if (this.subscriptionCount >= 5 && !this.isBestSeller) {
-            this.isBestSeller = true;
-
-            BestSellerArchived bestSellerArchived = new BestSellerArchived(this);
-            bestSellerArchived.publishAfterCommit();
-        }
+    public static BookRepository repository() {
+        BookRepository bookRepository = LibraryApplication.applicationContext.getBean(
+            BookRepository.class
+        );
+        return bookRepository;
     }
 
-    // 비즈니스 로직 3. 구독 취소 및 베스트셀러 취소
-    public void decreaseCountAndCheckBestseller() {
-        // 1. 구독 횟수가 0보다 클 때만 감소
-        if (this.subscriptionCount > 0) {
-            this.subscriptionCount--;
-        }
+    public static void publishBook(
+        BookPublished bookPublished
+    ) {
+        Book book = new Book();
+        book.setPublicationId(bookPublished.getId());
+        book.setAuthorId(bookPublished.getAuthorId());
+        book.setAuthorName(bookPublished.getAuthorname());
+        book.setTitle(bookPublished.getTitle());
+        book.setContents(bookPublished.getContents());
+        book.setPlot(bookPublished.getPlot());
+        book.setPlotUrl(bookPublished.getPlotUrl());
+        book.setCoverImageUrl(bookPublished.getCoverImageUrl());
+        book.setCategory(bookPublished.getCategory());
+        book.setSubscriptionFee(bookPublished.getSubscriptionFee());
+        book.setStatus(BookStatus.REGISTERED);
 
-        // 2. 구독 횟수가 5회 미만이 되고, 현재 베스트셀러 상태일 경우
-        if (this.subscriptionCount < 5 && this.isBestSeller) {        
-            this.isBestSeller = false;
+        repository().save(book);
+    }
 
-            BestSellerCancelled bestSellerCancelled = new BestSellerCancelled(this);
+    public static void archiveBestseller(
+        BookSubscriptionApplied bookSubscriptionApplied
+    ) {
+        repository().findById(bookSubscriptionApplied.getBookId()).ifPresent(book -> {
+            book.setSubscriptionCount(book.getSubscriptionCount() + 1);
+
+            if(book.getSubscriptionCount() >= 5 && !book.getIsBestSeller()){
+                book.setIsBestSeller(true);
+            }
+
+            BestSellerArchived bestSellerArchived = new BestSellerArchived(book);
+            bestSellerArchived.publishAfterCommit();
+        });
+    }
+
+    public static void cancelBestSeller(
+        Long id
+    ) {
+        repository().findById(id).ifPresent(book -> {
+            book.setSubscriptionCount(book.getSubscriptionCount() - 1);
+
+            if(book.getSubscriptionCount() < 5 && book.getIsBestSeller()){
+                book.setIsBestSeller(false);
+            }
+
+            BestSellerCancelled bestSellerCancelled = new BestSellerCancelled(book);
             bestSellerCancelled.publishAfterCommit();
-        }
+        });
     }
     
     // 비즈니스 로직 4. 책 열람
@@ -135,11 +147,5 @@ public class Book {
     }
     */
 
-    // public static BookRepository repository() {
-    //     BookRepository bookRepository = LibraryApplication.applicationContext.getBean(
-    //         BookRepository.class
-    //     );
-    //     return bookRepository;
-    // }
 }
 //>>> DDD / Aggregate Root
