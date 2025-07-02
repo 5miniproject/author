@@ -61,7 +61,7 @@ public class SubscriptionPermissionViewHandler {
             subscriptionPermission.setBookId(event.getBookId());
             subscriptionPermission.setSubscriberId(event.getSubscriberId());
 
-            permissionRepository.save(subscriptionPermission);
+            permissionRepository.delete(subscriptionPermission);
         }
         
     }
@@ -84,7 +84,7 @@ public class SubscriptionPermissionViewHandler {
             subscriptionPermission.setBookId(event.getBookId());
             subscriptionPermission.setSubscriberId(event.getSubscriberId());
 
-            permissionRepository.save(subscriptionPermission);
+            permissionRepository.delete(subscriptionPermission);
         }
         
     }
