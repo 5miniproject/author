@@ -10,7 +10,7 @@ import lombok.*;
 @Data
 @ToString
 public class BestSellerArchived extends AbstractEvent {
-    private Long bookId;
+    private Long id;
     private Boolean isBestSeller;
 
     public BestSellerArchived(Book aggregate) {

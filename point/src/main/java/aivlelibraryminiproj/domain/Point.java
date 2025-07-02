@@ -65,7 +65,6 @@ public class Point {
                 point.setPoint(point.getPoint() - usePoint);
 
                 PointDecreased pointDecreased = new PointDecreased(point);
-                pointDecreased.setBookId(bookSubscriptionApplied.getBookId());
                 pointDecreased.publishAfterCommit();
                 repository().save(point);
             }else{

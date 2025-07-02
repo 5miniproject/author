@@ -7,7 +7,7 @@ import lombok.ToString;
 @ToString
 public class BestSellerCancelled extends AbstractEvent{
     
-    private Long bookId;
+    private Long id;
     private Boolean isBestSeller;
 
 }

@@ -47,7 +47,7 @@ public class CheckBookViewHandler {
         try{
             if(!bestSellerArchived.validate()) return;
 
-            Optional <CheckBook> checkBookOptional = checkBookRepository.findById(bestSellerArchived.getBookId());
+            Optional <CheckBook> checkBookOptional = checkBookRepository.findById(bestSellerArchived.getId());
 
             if(checkBookOptional.isPresent()){
                 CheckBook checkBook = checkBookOptional.get();
@@ -76,7 +76,7 @@ public class CheckBookViewHandler {
         try{
             if(!bestSellerCancelled.validate()) return;
 
-            Optional <CheckBook> checkBookOptional = checkBookRepository.findById(bestSellerCancelled.getBookId());
+            Optional <CheckBook> checkBookOptional = checkBookRepository.findById(bestSellerCancelled.getId());
 
             if(checkBookOptional.isPresent()){
                 CheckBook checkBook = checkBookOptional.get();
