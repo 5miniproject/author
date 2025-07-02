@@ -19,6 +19,12 @@ spec:
           image: "username/serviceai:latest"
           ports:
             - containerPort: 8080
+          env:
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: openai-secret         # <- Secret 이름
+                  key: OPENAI_API_KEY         # <- Secret 내부 Key
           readinessProbe:
             httpGet:
               path: '/actuator/health'
