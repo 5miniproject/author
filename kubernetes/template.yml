@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: author
-          image: username/author:latest
+          image: "a0018.azurecr.io/author:latest"
           ports:
             - containerPort: 8080
           readinessProbe:
@@ -58,7 +58,87 @@ spec:
     spec:
       containers:
         - name: subscribe
-          image: username/subscribe:latest
+          image: "a0018.azurecr.io/subscribe:latest"
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: '/actuator/health'
+              port: 8080
+            initialDelaySeconds: 10
+            timeoutSeconds: 2
+            periodSeconds: 5
+            failureThreshold: 10
+          livenessProbe:
+            httpGet:
+              path: '/actuator/health'
+              port: 8080
+            initialDelaySeconds: 120
+            timeoutSeconds: 2
+            periodSeconds: 5
+            failureThreshold: 5
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+  labels:
+    app: gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      containers:
+        - name: gateway
+          image: "a0018.azurecr.io/gateway:latest"
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: '/actuator/health'
+              port: 8080
+            initialDelaySeconds: 10
+            timeoutSeconds: 2
+            periodSeconds: 5
+            failureThreshold: 10
+          livenessProbe:
+            httpGet:
+              path: '/actuator/health'
+              port: 8080
+            initialDelaySeconds: 120
+            timeoutSeconds: 2
+            periodSeconds: 5
+            failureThreshold: 5
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  labels:
+    app: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: "a0018.azurecr.io/frontend:latest"
           ports:
             - containerPort: 8080
           readinessProbe:
@@ -98,7 +178,7 @@ spec:
     spec:
       containers:
         - name: point
-          image: username/point:latest
+          image: "a0018.azurecr.io/point:latest"
           ports:
             - containerPort: 8080
           readinessProbe:
@@ -138,7 +218,7 @@ spec:
     spec:
       containers:
         - name: script
-          image: username/script:latest
+          image: "a0018.azurecr.io/script:latest"
           ports:
             - containerPort: 8080
           readinessProbe:
@@ -178,7 +258,7 @@ spec:
     spec:
       containers:
         - name: library
-          image: username/library:latest
+          image: "a0018.azurecr.io/library:latest"
           ports:
             - containerPort: 8080
           readinessProbe:
@@ -218,7 +298,7 @@ spec:
     spec:
       containers:
         - name: serviceai
-          image: username/serviceai:latest
+          image: "a0018.azurecr.io/serviceai:latest"
           ports:
             - containerPort: 8080
           readinessProbe:
@@ -271,6 +351,39 @@ spec:
       targetPort: 8080
   selector:
     app: subscribe
+
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  labels:
+    app: frontend
+spec:
+  ports:
+    - port: 8080
+      targetPort: 8080
+  selector:
+    app: frontend
+
+
+---
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+  labels:
+    app: gateway
+spec:
+  ports:
+    - port: 8080
+      targetPort: 8080
+  selector:
+    app: gateway
 
 
 ---
