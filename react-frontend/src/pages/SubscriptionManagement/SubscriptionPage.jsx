@@ -12,6 +12,7 @@ const SubscriptionPage = () => {
         fetchData: fetchSubscribers, // 구독자 목록 새로고침 함수
         showSnackbar,
         snackbar,
+        hideSnackbar, // useGridLogic에서 hideSnackbar를 가져옵니다.
         // useGridLogic에서 제공하는 CRUD 함수들을 가져옵니다.
         addNewRow, // <-- 새로운 구독자 추가 (로컬 상태만 변경)
         updateRow, // <-- 구독자 정보 수정
@@ -34,6 +35,13 @@ const SubscriptionPage = () => {
         isKt: false,
     });
 
+    // 헬퍼 함수: _links.self.href에서 ID 추출
+    const extractIdFromHref = (href) => {
+        if (!href) return null;
+        const parts = href.split('/');
+        return parseInt(parts[parts.length - 1], 10);
+    };
+
     // 선택된 구독자가 변경될 때마다 해당 구독자의 구독 목록을 가져옵니다.
     useEffect(() => {
         if (selectedSubscriber) {
@@ -47,44 +55,45 @@ const SubscriptionPage = () => {
         }
     }, [selectedSubscriber]);
 
-    // 선택된 구독자의 구독 목록을 가져오는 함수
     const fetchSubscribedBooks = async (subscriberId) => {
         setSubscribedBooksLoading(true);
         try {
-            // 1. SubscriptionOpen ReadModel에서 구독 목록을 가져옵니다.
             const response = await apiService.get(`/subscriptionOpens/search/findBySubscriberId?subscriberId=${subscriberId}`);
             const fetchedSubscriptions = response.data._embedded ? response.data._embedded.subscriptionOpens : [];
 
-            // ==============================================================
-            // [추가된 부분]
-            // 2. 각 구독 항목의 bookId를 사용하여 CheckBook에서 최신 isBestSeller 정보를 가져옵니다.
-            // ==============================================================
             const updatedSubscriptions = await Promise.all(
-                fetchedSubscriptions.map(async (book) => {
+                fetchedSubscriptions.map(async (rawSubscription) => {
+                    // 핵심 변경: _links.self.href에서 ID 추출
+                    const subscriptionId = rawSubscription._links?.self?.href 
+                                         ? extractIdFromHref(rawSubscription._links.self.href) 
+                                         : null;
+
+                    // rawSubscription의 모든 속성을 복사하고, id 필드를 직접 추가/덮어씁니다.
+                    const subscriptionWithId = {
+                        ...rawSubscription,
+                        id: subscriptionId, // 여기에 추출된 ID를 할당
+                    };
+                    
                     try {
-                        const checkBookResponse = await apiService.get(`/checkBooks/${book.bookId}`);
+                        const checkBookResponse = await apiService.get(`/checkBooks/${subscriptionWithId.bookId}`);
                         const checkBookData = checkBookResponse.data;
                         return {
-                            ...book,
-                            isBestSeller: checkBookData.isBestSeller, // CheckBook에서 가져온 isBestSeller로 업데이트
-                            // 필요하다면 CheckBook의 다른 필드 (예: title)도 여기서 업데이트할 수 있습니다.
-                            // 다만 현재는 SubscriptionOpen에 title이 이미 있으므로 굳이 다시 가져오지 않습니다.
+                            ...subscriptionWithId, // ID가 포함된 객체를 사용하여 반환
+                            isBestSeller: checkBookData.isBestSeller,
+                            title: checkBookData.title,
                         };
                     } catch (checkBookError) {
-                        // eslint-disable-next-line no-console
-                        console.error(`CheckBook (ID: ${book.bookId}) 정보 조회 실패:`, checkBookError);
-                        // CheckBook 조회 실패 시 기존 isBestSeller 값 유지 또는 기본값 설정
-                        return { ...book, isBestSeller: book.isBestSeller || false }; 
+                        console.error(`CheckBook (ID: ${subscriptionWithId.bookId}) 정보 조회 실패:`, checkBookError);
+                        return { 
+                            ...subscriptionWithId, // ID가 포함된 객체를 사용하여 반환
+                            isBestSeller: rawSubscription.isBestSeller || false, 
+                            title: rawSubscription.title || '알 수 없는 책' 
+                        };
                     }
                 })
             );
             setSubscribedBooks(updatedSubscriptions);
-            // ==============================================================
-            // [추가된 부분 끝]
-            // ==============================================================
-
         } catch (error) {
-            // eslint-disable-next-line no-console
             console.error('선택된 구독자의 구독 목록 조회 실패:', error);
             setSubscribedBooks([]);
             showSnackbar('구독 목록 조회에 실패했습니다.', 'error');
@@ -101,7 +110,6 @@ const SubscriptionPage = () => {
             setNewSubscriber({ email: '', name: '', isKt: false });
             fetchSubscribers();
         } catch (error) {
-            // eslint-disable-next-line no-console
             console.error('구독자 등록 실패:', error);
             const errorMessage = error.response?.data?.message || '구독자 등록에 실패했습니다.';
             showSnackbar(errorMessage, 'error');
@@ -127,7 +135,6 @@ const SubscriptionPage = () => {
             setEditSubscriberDialog(false);
             changeSelectedSubscriber(currentEditingSubscriber); 
         } catch (error) {
-            // eslint-disable-next-line no-console
             console.error('구독자 수정 실패:', error);
             const errorMessage = error.response?.data?.message || '구독자 정보 수정에 실패했습니다.';
             showSnackbar(errorMessage, 'error');
@@ -165,20 +172,22 @@ const SubscriptionPage = () => {
             fetchSubscribedBooks(selectedSubscriber.id); 
             fetchSubscribers(); 
         } catch (error) {
-            // eslint-disable-next-line no-console
             console.error('구독 신청 실패:', error);
             const errorMessage = error.response?.data?.message || '구독 신청에 실패했습니다.';
             showSnackbar(errorMessage, 'error');
         }
     };
 
-    const handleCancelSubscription = async (subscribeBookId) => {
+    const handleCancelSubscription = async (subscriptionId) => {
         if (!selectedSubscriber) {
             showSnackbar('구독 취소할 구독자를 선택해주세요.', 'warning');
             return;
         }
-        if (!subscribeBookId) {
-            showSnackbar('취소할 구독 항목을 선택해주세요.', 'warning');
+        
+        // subscriptionId의 유효성 검사 (숫자이고 0보다 큰지)
+        if (subscriptionId === null || subscriptionId === undefined || isNaN(Number(subscriptionId)) || Number(subscriptionId) <= 0) {
+            showSnackbar('취소할 구독 항목의 ID가 유효하지 않습니다. 콘솔 확인 요망.', 'error');
+            console.error('handleCancelSubscription: Received invalid subscriptionId for cancellation.', subscriptionId);
             return;
         }
 
@@ -187,12 +196,11 @@ const SubscriptionPage = () => {
         }
 
         try {
-            await apiService.delete(`/subscribeBooks/${subscribeBookId}`);
+            await apiService.delete(`/subscribeBooks/${subscriptionId}`); // SubscriptionOpen의 ID로 직접 삭제 요청
             showSnackbar('서적 구독이 취소되었습니다.', 'success');
             fetchSubscribedBooks(selectedSubscriber.id); 
             fetchSubscribers(); 
         } catch (error) {
-            // eslint-disable-next-line no-console
             console.error('구독 취소 실패:', error);
             const errorMessage = error.response?.data?.message || '구독 취소에 실패했습니다. 관리자에게 문의하세요.';
             showSnackbar(errorMessage, 'error');
@@ -220,9 +228,8 @@ const SubscriptionPage = () => {
             fetchSubscribers();
             changeSelectedSubscriber({ ...selectedSubscriber, isPurchased: true });
         } catch (error) {
-            // eslint-disable-next-line no-console
             console.error('구독권 구매 실패:', error);
-            const errorMessage = error.response?.data?.message || '구독권 구매에 실패했습니다. 관리자에게 문의하세요.';
+            const errorMessage = error.response?.data?.message || '구독권 구매에 실패했습니다.';
             showSnackbar(errorMessage, 'error');
         }
     };
@@ -233,7 +240,8 @@ const SubscriptionPage = () => {
             {snackbar.status && (
                 <div style={{ position: 'fixed', bottom: '20px', right: '20px', padding: '15px', backgroundColor: snackbar.color === 'success' ? '#4CAF50' : '#F44336', color: 'white', borderRadius: '5px', zIndex: 999 }}>
                     {snackbar.message}
-                    <button onClick={() => showSnackbar({ ...snackbar, status: false })} style={{ marginLeft: '20px', color: 'white', border: 'none', background: 'transparent', cursor: 'pointer' }}>Close</button>
+                    {/* Snackbar Close 버튼 클릭 핸들러 */}
+                    <button onClick={hideSnackbar} style={{ marginLeft: '20px', color: 'white', border: 'none', background: 'transparent', cursor: 'pointer' }}>Close</button>
                 </div>
             )}
 
@@ -265,7 +273,7 @@ const SubscriptionPage = () => {
                     </thead>
                     <tbody>
                         {subscribersLoading ? (
-                            <tr><td colSpan="7" style={{ textAlign: 'center', padding: '20px' }}>Loading Subscribers...</td></tr>
+                            <tr key="subscribers-loading-row"><td colSpan="7" style={{ textAlign: 'center', padding: '20px' }}>Loading Subscribers...</td></tr>
                         ) : (
                             subscribers.map((subscriber) => (
                                 <tr
@@ -319,8 +327,12 @@ const SubscriptionPage = () => {
                         <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px' }}>
                             <thead>
                                 <tr style={{ borderBottom: '2px solid #ddd' }}>
+                                    <th style={{ padding: '12px', textAlign: 'left' }}>구독 ID</th> {/* 구독 ID 컬럼 추가 */}
                                     <th style={{ padding: '12px', textAlign: 'left' }}>책 ID</th>
                                     <th style={{ padding: '12px', textAlign: 'left' }}>제목</th>
+                                    <th style={{ padding: '12px', textAlign: 'left' }}>상태</th>
+                                    <th style={{ padding: '12px', textAlign: 'left' }}>구독일</th>
+                                    <th style={{ padding: '12px', textAlign: 'left' }}>구독료</th>
                                     <th style={{ padding: '12px', textAlign: 'left' }}>베스트셀러</th>
                                     <th style={{ padding: '12px', textAlign: 'left' }}>액션</th>
                                 </tr>
@@ -332,20 +344,24 @@ const SubscriptionPage = () => {
                                 ) : subscribedBooks.length === 0 ? (
                                     <tr key="no-subscribed-books-row"><td colSpan="9" style={{ textAlign: 'center', padding: '20px' }}>구독 중인 책이 없습니다.</td></tr>
                                 ) : (
-                                    subscribedBooks.map((book) => (
-                                        <tr key={book.id} style={{ borderBottom: '1px solid #eee' }}>
-                                            <td style={{ padding: '12px' }}>{book.id}</td>
-                                            <td style={{ padding: '12px' }}>{book.bookId}</td>
-                                            <td style={{ padding: '12px' }}>{book.title}</td>
-                                            <td style={{ padding: '12px' }}>{book.status}</td>
-                                            <td style={{ padding: '12px' }}>{book.subscriptionDate ? new Date(book.subscriptionDate).toLocaleDateString() : ''}</td>
-                                            <td style={{ padding: '12px' }}>{book.subscriptionFee}</td>
-                                            <td style={{ padding: '12px' }}>{book.isBestSeller ? 'Yes' : 'No'}</td>
+                                    subscribedBooks.map((subscription) => ( // 'book' 대신 'subscription'으로 변수명 변경
+                                        <tr key={subscription.id} style={{ borderBottom: '1px solid #eee' }}>
+                                            <td style={{ padding: '12px' }}>{subscription.id}</td> {/* 구독 ID 표시 */}
+                                            <td style={{ padding: '12px' }}>{subscription.bookId}</td>
                                             <td style={{ padding: '12px' }}>
-                                                <button onClick={() => handleCancelSubscription(book.id)} style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}>
+                                                {subscription.isBestSeller && <span style={{ color: 'red', fontWeight: 'bold', marginRight: '5px' }}>[BEST]</span>}
+                                                {subscription.title || `(제목 없음) ID: ${subscription.bookId}`} {/* 제목이 없을 경우 표시 */}
+                                            </td>
+                                            <td style={{ padding: '12px' }}>{subscription.status}</td>
+                                            <td style={{ padding: '12px' }}>{subscription.subscriptionDate ? new Date(subscription.subscriptionDate).toLocaleDateString() : ''}</td>
+                                            <td style={{ padding: '12px' }}>{subscription.subscriptionFee}</td>
+                                            <td style={{ padding: '12px' }}>{subscription.isBestSeller ? 'Yes' : 'No'}</td>
+                                            <td style={{ padding: '12px' }}>
+                                                <button onClick={() => handleCancelSubscription(subscription.id)} style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}>
                                                     구독 취소
                                                 </button>
-                                            </td></tr>
+                                            </td>
+                                        </tr>
                                     ))
                                 )}
                             </tbody>

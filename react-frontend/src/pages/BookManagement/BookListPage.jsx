@@ -18,8 +18,10 @@ const BookListPage = () => {
 
     const fetchBooks = async () => {
         try {
+            // BookSummaryDto 호출
             const response = await apiService.get('/books');
-            const bookList = response.data.content || [];
+            // Spring Data JPA Page 객체 응답은 content 필드에 실제 목록을 담고 있음
+            const bookList = response.data.content || []; 
             setBooks(bookList);
         } catch (error) {
             // eslint-disable-next-line no-console
@@ -33,6 +35,7 @@ const BookListPage = () => {
         }
 
         try {
+            // Command: 책 삭제
             await apiService.delete(`/books/${bookId}`);
             alert('책이 삭제되었습니다.');
             setBooks(prevBooks => prevBooks.filter(b => b.id != bookId));
@@ -46,8 +49,6 @@ const BookListPage = () => {
         }
     };
 
-    // ==============================================================
-    // [수정된 부분]
     // 구독자 ID 입력 필드의 값 변경 핸들러: 유효하지 않은 입력은 null로 설정
     const handleSubscriberIdChange = (e) => {
         const value = e.target.value;
@@ -66,16 +67,13 @@ const BookListPage = () => {
 
     // '구독자 ID 설정' 버튼 클릭 핸들러
     const handleSetSubscriberId = () => {
-        // currentSubscriberId가 null이면 (즉, 입력이 유효하지 않거나 비어있으면) 경고 후 1로 강제 설정
         if (currentSubscriberId === null || currentSubscriberId === '' || isNaN(currentSubscriberId) || currentSubscriberId <= 0) {
             alert('유효한 구독자 ID를 입력해주세요. (양의 정수)');
             setCurrentSubscriberId(1); // 유효성 검사 실패 시 기본값 1로 재설정
         } else {
             alert(`현재 구독자 ID가 ${currentSubscriberId}로 설정되었습니다.`);
-            // 상태는 이미 onChange에서 업데이트되었으므로 여기서는 추가 작업이 필요 없습니다.
         }
     };
-    // ==============================================================
 
     return (
         <div>
@@ -109,8 +107,12 @@ const BookListPage = () => {
                 {books.map((book) => (
                     <li key={book.id} style={{ border: '1px solid #ccc', margin: '10px', padding: '10px' }}>
                         <h4>
+                            {/* ==============================================================
+                              [추가된 부분] 베스트셀러 표시와 함께 제목 옆에 Book ID 표시
+                              ============================================================== */}
                             {book.isBestSeller && <span style={{ color: 'red', fontWeight: 'bold', marginRight: '5px' }}>[BEST]</span>}
-                            {book.title}
+                            {book.title} (ID: {book.id}) {/* <-- 이 부분이 수정되었습니다. */}
+                            {/* ============================================================== */}
                         </h4>
                         <p>저자: {book.authorName} | 조회수: {book.views}</p>
 
