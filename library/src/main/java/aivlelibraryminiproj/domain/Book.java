@@ -96,6 +96,8 @@ public class Book {
                 book.setIsBestSeller(true);
                 book.setSubscriptionFee(1500);
 
+                repository().save(book);
+
                 BestSellerArchived bestSellerArchived = new BestSellerArchived(book);
                 bestSellerArchived.publishAfterCommit();
             }
@@ -112,6 +114,8 @@ public class Book {
             if(book.getSubscriptionCount() < 5 && book.getIsBestSeller()){
                 book.setIsBestSeller(false);
                 book.setSubscriptionFee(1000);
+
+                repository().delete(book);
 
                 BestSellerCancelled bestSellerCancelled = new BestSellerCancelled(book);
                 bestSellerCancelled.publishAfterCommit();
