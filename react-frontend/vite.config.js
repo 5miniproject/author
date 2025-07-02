@@ -11,5 +11,8 @@ export default defineConfig({
     allowedHosts: [
       '8080-5miniprojec-libraryproj-19bfadrkwwl.ws-us120.gitpod.io', // Gitpod에서 제공하는 URL
     ],
+    hmr: {
+      clientPort: 8080,
+    }
   },
 });
