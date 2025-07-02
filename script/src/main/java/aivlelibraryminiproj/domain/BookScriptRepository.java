@@ -14,4 +14,6 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
     path = "bookScripts"
 )
 public interface BookScriptRepository
-    extends PagingAndSortingRepository<BookScript, Long> {}
+    extends PagingAndSortingRepository<BookScript, Long> {
+        List<BookScript> findByAuthorId(Long authorId);
+    }
