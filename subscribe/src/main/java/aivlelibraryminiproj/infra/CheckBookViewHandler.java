@@ -19,7 +19,7 @@ public class CheckBookViewHandler {
     private CheckBookRepository checkBookRepository;
 
     @StreamListener(KafkaProcessor.INPUT)
-    public void whenBookPublished_then_CREATE_1(
+    public void whenBookRegistered_then_CREATE_1(
         @Payload BookRegistered BookRegistered
     ) {
         try {
@@ -32,7 +32,7 @@ public class CheckBookViewHandler {
             checkBook.setTitle(BookRegistered.getTitle());
             checkBook.setAuthorId(BookRegistered.getAuthorId());
             checkBook.setSubscriptionFee(BookRegistered.getSubscriptionFee());
-            checkBook.setIsBestSeller(BookRegistered.getIsBest());
+            checkBook.setIsBestSeller(BookRegistered.getIsBestSeller());
             // view 레파지 토리에 save
             checkBookRepository.save(checkBook);
         } catch (Exception e) {

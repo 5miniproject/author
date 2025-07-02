@@ -19,7 +19,7 @@ public class BookRegistered extends AbstractEvent {
     private Integer subscriptionFee;
     private String plotUrl;
     private Long views;
-    private Boolean isBest;
+    private Boolean isBestSeller;
     private String title;
     private String authorName;
 }
