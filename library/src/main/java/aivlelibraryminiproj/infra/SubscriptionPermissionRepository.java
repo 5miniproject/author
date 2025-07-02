@@ -1,14 +1,9 @@
 package aivlelibraryminiproj.infra;
 
-
-// import java.util.List;
-// import java.util.Optional;
-
-
+import java.util.List;
+import java.util.Optional;
 import aivlelibraryminiproj.domain.*;
-// import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.jpa.repository.JpaRepository; 
-// --> PaginAndSortingRepository보다 JpaRepository가 더 기능 많음 기왕이면 많으면 좋으니까
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
 @RepositoryRestResource(
@@ -16,7 +11,9 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
     path = "subscriptionPermissions"
 )
 public interface SubscriptionPermissionRepository
-    extends JpaRepository<SubscriptionPermission, SubscriptionPermissionId> {
+    extends JpaRepository<SubscriptionPermission, Long> {
+
+    Optional<SubscriptionPermission> findByBookIdAndSubscriberId(Long bookId, Long subscriberId);
         // 1. 자동 생성 ID
         // boolean existsBySubscriberIdAndBookId(Long subscriberId, Long bookId);
         // Optional<CheckSubscriptionPermisson> findBySubscriberIdAndBookId(Long subscriberId, Long bookId);

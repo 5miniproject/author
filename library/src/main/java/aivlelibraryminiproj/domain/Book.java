@@ -115,7 +115,7 @@ public class Book {
                 book.setIsBestSeller(false);
                 book.setSubscriptionFee(1000);
 
-                repository().delete(book);
+                repository().save(book);
 
                 BestSellerCancelled bestSellerCancelled = new BestSellerCancelled(book);
                 bestSellerCancelled.publishAfterCommit();
@@ -127,8 +127,6 @@ public class Book {
     // 비즈니스 로직 4. 책 열람
     //<<< Clean Arch / Port Method
     public void readBook(ReadBookCommand readBookCommand) {
-        this.views++;
-
         BookRead bookRead = new BookRead(this);
 
         if (readBookCommand != null && readBookCommand.getSubscriberId() != null) {

@@ -1,17 +1,15 @@
 package aivlelibraryminiproj.infra;
 
-// import aivlelibraryminiproj.infra.*;
-// import java.util.Optional;
-// import org.springframework.beans.factory.annotation.Autowired;
-// import org.springframework.security.core.Authentication;
-
+import aivlelibraryminiproj.infra.*;
+import java.util.Optional;
+import org.springframework.beans.factory.annotation.Autowired;
 import aivlelibraryminiproj.domain.*;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-// 정렬
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -62,14 +60,9 @@ public class BookController {
     ) throws Exception {
         System.out.println("##### /book/read called #####");
 
-        SubscriptionPermissionId permissionId = new SubscriptionPermissionId(
-            readBookCommand.getSubscriberId(),
-            bookId
-        );
+        Optional<SubscriptionPermission> permission = permissionRepository.findByBookIdAndSubscriberId(bookId, readBookCommand.getSubscriberId());
 
-        boolean hasPermission = permissionRepository.existsById(permissionId);
-
-        if (!hasPermission) {
+        if (!permission.isPresent()) {
             // 권한이 없으면 403 Forbidden 에러를 반환
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "이 책을 열람할 구독 권한이 없습니다.");
         }
@@ -84,6 +77,7 @@ public class BookController {
         }
 
         // 2. 애그리거트의 비즈니스 메서드 호출
+        book.setViews(book.getViews() + 1);
         book.readBook(readBookCommand);
 
         // 3. 애그리거트 상태 저장
