@@ -99,7 +99,6 @@ public class Book {
                 repository().save(book);
 
                 BestSellerArchived bestSellerArchived = new BestSellerArchived(book);
-                bestSellerArchived.setBookId(book.getId());
                 bestSellerArchived.publishAfterCommit();
             }
 
