@@ -94,6 +94,7 @@ public class Book {
 
             if(book.getSubscriptionCount() >= 5 && !book.getIsBestSeller()){
                 book.setIsBestSeller(true);
+                book.setSubscriptionFee(1500);
             }
 
             BestSellerArchived bestSellerArchived = new BestSellerArchived(book);
@@ -109,6 +110,7 @@ public class Book {
 
             if(book.getSubscriptionCount() < 5 && book.getIsBestSeller()){
                 book.setIsBestSeller(false);
+                book.setSubscriptionFee(1000);
             }
 
             BestSellerCancelled bestSellerCancelled = new BestSellerCancelled(book);

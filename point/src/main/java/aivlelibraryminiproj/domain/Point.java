@@ -70,6 +70,7 @@ public class Point {
                 repository().save(point);
             }else{
                 PointShorted pointShorted = new PointShorted(point);
+                pointShorted.setSubscriptionId(bookSubscriptionApplied.getId());
                 pointShorted.publishAfterCommit();
             }
 
