@@ -59,27 +59,20 @@ public class Publication {
         return publicationRepository;
     }
 
-    //<<< Clean Arch / Port Method
-    public void publishBook(PublishBookCommand publishBookCommand) {
-        //implement business logic here:
+    private static OpenAiService aiService() {
+        return ApplicationContextProvider.getBean(OpenAiService.class);
+    }
 
+    public void publishBook(PublishBookCommand publishBookCommand) {
         BookPublished bookPublished = new BookPublished(this);
         bookPublished.publishAfterCommit();
     }
 
-    //>>> Clean Arch / Port Method
-    //<<< Clean Arch / Port Method
     public void regenerateI(RegenerateICommand regenerateICommand) {
-        //implement business logic here:
-
-        RegenerationRequested regenerationRequested = new RegenerationRequested(
-            this
-        );
+        RegenerationRequested regenerationRequested = new RegenerationRequested(this);
         regenerationRequested.publishAfterCommit();
     }
 
-    //>>> Clean Arch / Port Method
-    //<<< Clean Arch / Port Method
     public static void publicationRegistration(
         BookPublishRequested bookPublishRequested
     ) {
@@ -96,8 +89,6 @@ public class Publication {
         bookCoverImagePlotRequest.publishAfterCommit();
     }
 
-    //>>> Clean Arch / Port Method
-    //<<< Clean Arch / Port Method
     public static void BookCoverImagePlotCompleted(
         BookCoverImagePlotRequest bookCoverImagePlotRequest
     ) {
@@ -129,6 +120,7 @@ public class Publication {
                 publication.setStatus("이미지/줄거리 생성완료");
 
                 repository().save(publication);
+
             }catch(Exception e){
                 e.printStackTrace();
             }
@@ -136,13 +128,7 @@ public class Publication {
         });
 
     }
-
-    private static OpenAiService aiService() {
-        return ApplicationContextProvider.getBean(OpenAiService.class);
-    }
-
-    //>>> Clean Arch / Port Method
-    //<<< Clean Arch / Port Method
+    
     public static void RegenerateCompleted(
         RegenerationRequested regenerationRequested
     ) {
@@ -160,6 +146,7 @@ public class Publication {
                 publication.setStatus("이미지 재생성완료");
 
                 repository().save(publication);
+
             }catch(Exception e){
                 e.printStackTrace();
             }
@@ -169,4 +156,3 @@ public class Publication {
     }
 
 }
-//>>> DDD / Aggregate Root
