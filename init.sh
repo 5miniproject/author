@@ -12,9 +12,6 @@ echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ jammy mai
 sudo apt update
 sudo apt install azure-cli
 
-curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
-sudo mv /tmp/eksctl /usr/local/bin
-
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
 . ~/.nvm/nvm.sh
 nvm install 14.19.0 && nvm use 14.19.0
