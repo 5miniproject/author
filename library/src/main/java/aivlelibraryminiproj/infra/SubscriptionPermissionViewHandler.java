@@ -47,7 +47,7 @@ public class SubscriptionPermissionViewHandler {
                 );
                 
                 // 2. 리드 모델 엔티티 생성
-                SubscriptionPermission permission = new SubscriptionPermission(permissionId);
+                SubscriptionPermission permission = new SubscriptionPermission();
                 
                 // 3. 리드 모델 DB에 저장
                 permissionRepository.save(permission);
