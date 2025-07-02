@@ -348,9 +348,6 @@ spec:
           image: a0018.azurecr.io/frontend:latest
           ports:
             - containerPort: 8080
-          env:
-            - name: VITE_API_BASE_URL
-              value: "http://gateway:8080/"
 
 
 ---
