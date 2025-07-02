@@ -16,6 +16,6 @@ spec:
     spec:
       containers:
         - name: gateway
-          image: username/gateway:latest
+          image: a0018.azurecr.io/gateway:latest
           ports:
             - containerPort: 8080
