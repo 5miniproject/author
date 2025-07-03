@@ -18,6 +18,9 @@ spring:
         show_sql: true
         format_sql: true
         implicit_naming_strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyComponentPathImpl
+  web:
+    resources:
+      static-locations: file:/files/
   cloud:
     stream:
       kafka:
@@ -34,21 +37,16 @@ spring:
       bindings:
         event-in:
           group: serviceai
-#<<< EDA / Topic Name
           destination: aivlelibraryminiproj
-#>>> EDA / Topic Name
           contentType: application/json
         event-out:
-#<<< EDA / Topic Name
           destination: aivlelibraryminiproj
-#>>> EDA / Topic Name
           contentType: application/json
 
 logging:
   level:
     org.hibernate.type: trace
     org.springframework.cloud: debug
-
 
 server:
   port: 8087
@@ -65,7 +63,7 @@ spring:
         implicit_naming_strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyComponentPathImpl
   web:
     resources:
-      static-locations: file:./files/
+      static-locations: file:/files/
   cloud:
     stream:
       kafka:
@@ -87,5 +85,3 @@ spring:
         event-out:
           destination: aivlelibraryminiproj
           contentType: application/json
-
-
