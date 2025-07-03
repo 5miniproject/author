@@ -20,6 +20,18 @@ spec:
           image: "a0018.azurecr.io/library:latest"
           ports:
             - containerPort: 8080
+          env:
+            - name: _DATASOURCE_ADDRESS
+              value: mysql-service
+            - name: _DATASOURCE_TABLESPACE
+              value: library_db
+            - name: _DATASOURCE_USERNAME
+              value: root
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-pass
+                  key: password
           readinessProbe:
             httpGet:
               path: '/actuator/health'
