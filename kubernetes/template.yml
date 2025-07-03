@@ -75,6 +75,18 @@ spec:
           image: "a0018.azurecr.io/subscribe:latest"
           ports:
             - containerPort: 8080
+          env:
+            - name: _DATASOURCE_ADDRESS
+              value: mysql-service
+            - name: _DATASOURCE_TABLESPACE
+              value: subscribe_db
+            - name: _DATASOURCE_USERNAME
+              value: root
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-pass # MySQL 비밀번호가 저장된 Secret 이름
+                  key: password    # Secret 내의 키
           readinessProbe:
             httpGet:
               path: '/actuator/health'
@@ -91,13 +103,7 @@ spec:
             timeoutSeconds: 2
             periodSeconds: 5
             failureThreshold: 5
-          volumeMounts:
-            - name: azure-volume
-              mountPath: /files
-      volumes:
-        - name: azure-volume
-          persistentVolumeClaim:
-            claimName: azurefile
+
 
 ---
 
@@ -139,13 +145,6 @@ spec:
             timeoutSeconds: 2
             periodSeconds: 5
             failureThreshold: 5
-          volumeMounts:
-            - name: azure-volume
-              mountPath: /files
-      volumes:
-        - name: azure-volume
-          persistentVolumeClaim:
-            claimName: azurefile
 
 ---
 
@@ -187,13 +186,6 @@ spec:
             timeoutSeconds: 2
             periodSeconds: 5
             failureThreshold: 5
-          volumeMounts:
-            - name: azure-volume
-              mountPath: /files
-      volumes:
-        - name: azure-volume
-          persistentVolumeClaim:
-            claimName: azurefile
 
 ---
 
@@ -247,13 +239,6 @@ spec:
             timeoutSeconds: 2
             periodSeconds: 5
             failureThreshold: 5
-          volumeMounts:
-            - name: azure-volume
-              mountPath: /files
-      volumes:
-        - name: azure-volume
-          persistentVolumeClaim:
-            claimName: azurefile
 
 
 ---
@@ -308,13 +293,6 @@ spec:
             timeoutSeconds: 2
             periodSeconds: 5
             failureThreshold: 5
-          volumeMounts:
-            - name: azure-volume
-              mountPath: /files
-      volumes:
-        - name: azure-volume
-          persistentVolumeClaim:
-            claimName: azurefile
 
 
 ---
@@ -369,13 +347,6 @@ spec:
             timeoutSeconds: 2
             periodSeconds: 5
             failureThreshold: 5
-          volumeMounts:
-            - name: azure-volume
-              mountPath: /files
-      volumes:
-        - name: azure-volume
-          persistentVolumeClaim:
-            claimName: azurefile
 
 
 ---

@@ -57,7 +57,15 @@ server:
 
 spring:
   profiles: docker
+  datasource:
+    # url: jdbc:mysql://mysql-service:3306/mysql?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    url: jdbc:mysql://${_DATASOURCE_ADDRESS}:3306/${_DATASOURCE_TABLESPACE}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: ${_DATASOURCE_USERNAME:root}
+    password: ${MYSQL_ROOT_PASSWORD} # 환경 변수 참조
+    driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
+    hibernate:
+     ddl-auto: update
     properties:
       hibernate:
         show_sql: true
