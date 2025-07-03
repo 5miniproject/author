@@ -20,6 +20,18 @@ spec:
           image: "a0018.azurecr.io/point:latest"
           ports:
             - containerPort: 8080
+          env:
+            - name: _DATASOURCE_ADDRESS
+              value: mysql-service
+            - name: _DATASOURCE_TABLESPACE
+              value: point_db
+            - name: _DATASOURCE_USERNAME
+              value: root
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-pass # MySQL 비밀번호가 저장된 Secret 이름
+                  key: password    # Secret 내의 키
           readinessProbe:
             httpGet:
               path: '/actuator/health'
