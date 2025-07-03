@@ -8,7 +8,7 @@ import lombok.Data;
 
 //<<< EDA / CQRS
 @Entity
-@Table(name = "CheckBook_table")
+@Table(name = "check_book_table")
 @Data
 public class CheckBook {
 

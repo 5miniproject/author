@@ -8,7 +8,7 @@ import lombok.Data;
 
 //<<< EDA / CQRS
 @Entity
-@Table(name = "SubscriptionOpen_table")
+@Table(name = "subscription_open_table")
 @Data
 public class SubscriptionOpen {
 

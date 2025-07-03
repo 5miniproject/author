@@ -8,7 +8,7 @@ import lombok.Data;
 
 //<<< EDA / CQRS
 @Entity
-@Table(name = "EbookStatisticsView_table")
+@Table(name = "ebook_statistics_view_table")
 @Data
 public class EbookStatisticsView {
 

@@ -49,7 +49,6 @@ spring:
               - "*"
             allowCredentials: true
 
-
 ---
 
 spring:
@@ -60,11 +59,37 @@ spring:
         - id: author
           uri: http://author:8080
           predicates:
-            - Path=/authors/**, 
+            - Path=/authors/**,
+
+        - id: ebook-statistics-views
+          uri: http://author:8080
+          predicates:
+            - Path=/api/ebookStatisticsViews/**
+          filters:
+            - RewritePath=/api/(?<segment>.*), /${segment}
+
         - id: subscribe
           uri: http://subscribe:8080
           predicates:
             - Path=/subscribers/**, /subscribeBooks/**, 
+        
+        # subscriptionOpens를 위한 새로운 라우팅 규칙 추가
+        # 이 규칙은 /api/subscriptionOpens/** 경로를 처리합니다.
+        - id: subscription-opens
+          uri: http://subscribe:8080 # subscriptionOpens가 subscribe 서비스 내에 있으므로 subscribe 서비스로 라우팅
+          predicates:
+            - Path=/api/subscriptionOpens/**
+          filters:
+            - RewritePath=/api/(?<segment>.*), /${segment}
+        
+        # 이 규칙은 /api/checkBooks/** 경로를 처리합니다.
+        - id: check-books
+          uri: http://subscribe:8080 # subscriptionOpens가 subscribe 서비스 내에 있으므로 subscribe 서비스로 라우팅
+          predicates:
+            - Path=/api/checkBooks/**
+          filters:
+            - RewritePath=/api/(?<segment>.*), /${segment}
+        
         - id: point
           uri: http://point:8080
           predicates:
