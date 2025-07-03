@@ -37,6 +37,13 @@ spec:
             timeoutSeconds: 2
             periodSeconds: 5
             failureThreshold: 5
+          volumeMounts:
+            - name: azure-volume
+              mountPath: /files
+      volumes:
+        - name: azure-volume
+          persistentVolumeClaim:
+            claimName: azurefile
 
 ---
 
@@ -77,6 +84,13 @@ spec:
             timeoutSeconds: 2
             periodSeconds: 5
             failureThreshold: 5
+          volumeMounts:
+            - name: azure-volume
+              mountPath: /files
+      volumes:
+        - name: azure-volume
+          persistentVolumeClaim:
+            claimName: azurefile
 
 ---
 
@@ -117,6 +131,13 @@ spec:
             timeoutSeconds: 2
             periodSeconds: 5
             failureThreshold: 5
+          volumeMounts:
+            - name: azure-volume
+              mountPath: /files
+      volumes:
+        - name: azure-volume
+          persistentVolumeClaim:
+            claimName: azurefile
 
 ---
 
@@ -157,6 +178,13 @@ spec:
             timeoutSeconds: 2
             periodSeconds: 5
             failureThreshold: 5
+          volumeMounts:
+            - name: azure-volume
+              mountPath: /files
+      volumes:
+        - name: azure-volume
+          persistentVolumeClaim:
+            claimName: azurefile
 
 ---
 
@@ -197,6 +225,13 @@ spec:
             timeoutSeconds: 2
             periodSeconds: 5
             failureThreshold: 5
+          volumeMounts:
+            - name: azure-volume
+              mountPath: /files
+      volumes:
+        - name: azure-volume
+          persistentVolumeClaim:
+            claimName: azurefile
 
 ---
 
@@ -237,6 +272,13 @@ spec:
             timeoutSeconds: 2
             periodSeconds: 5
             failureThreshold: 5
+          volumeMounts:
+            - name: azure-volume
+              mountPath: /files
+      volumes:
+        - name: azure-volume
+          persistentVolumeClaim:
+            claimName: azurefile
 
 ---
 
@@ -277,6 +319,13 @@ spec:
             timeoutSeconds: 2
             periodSeconds: 5
             failureThreshold: 5
+          volumeMounts:
+            - name: azure-volume
+              mountPath: /files
+      volumes:
+        - name: azure-volume
+          persistentVolumeClaim:
+            claimName: azurefile
 
 ---
 
@@ -355,6 +404,13 @@ spec:
           image: a0018.azurecr.io/frontend:latest
           ports:
             - containerPort: 8080
+          volumeMounts:
+            - name: azure-volume
+              mountPath: /files
+      volumes:
+        - name: azure-volume
+          persistentVolumeClaim:
+            claimName: azurefile
 
 
 ---
