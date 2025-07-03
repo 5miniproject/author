@@ -37,3 +37,11 @@ spec:
                 name: gateway # 이 Service는 'gateway' Deployment에 연결된 ClusterIP Service여야 합니다.
                 port:
                   number: 8080 # gateway Pod의 컨테이너 포트와 Service 포트가 일치해야 합니다.
+                            # AI 서비스가 직접 사진을 서빙하는 경우, 여기에 /files 규칙 추가
+          - path: /files # 또는 /generated-images
+            pathType: Prefix
+            backend:
+              service:
+                name: serviceai # AI 서비스의 이름
+                port:
+                  number: 8080
