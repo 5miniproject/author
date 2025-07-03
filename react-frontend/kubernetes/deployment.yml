@@ -36,10 +36,3 @@ spec:
             timeoutSeconds: 2
             periodSeconds: 5
             failureThreshold: 5
-          volumeMounts:
-            - name: azure-volume
-              mountPath: /files
-      volumes:
-        - name: azure-volume
-          persistentVolumeClaim:
-            claimName: azurefile

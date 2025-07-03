@@ -216,9 +216,9 @@ const ManuscriptGridPage = () => {
                     </div>
                     <div>
                         <div style={{ marginBottom: '15px' }}><label>AuthorId</label><input type="text" value={selectedRow.authorId} onChange={(e) => setSelectedRow({...selectedRow, authorId: e.target.value})} style={{ width: '100%', padding: '8px' }} /></div>
+                        <div style={{ marginBottom: '15px' }}><label>Authorname</label><input type="text" value={selectedRow.authorname} onChange={(e) => setSelectedRow({...selectedRow, authorname: e.target.value})} style={{ width: '100%', padding: '8px' }} /></div>
                         <div style={{ marginBottom: '15px' }}><label>Title</label><input type="text" value={selectedRow.title} onChange={(e) => setSelectedRow({...selectedRow, title: e.target.value})} style={{ width: '100%', padding: '8px' }} /></div>
                         <div style={{ marginBottom: '15px' }}><label>Contents</label><textarea value={selectedRow.contents} onChange={(e) => setSelectedRow({...selectedRow, contents: e.target.value})} style={{ width: '100%', padding: '8px', minHeight: '100px' }}></textarea></div>
-                        <div style={{ marginBottom: '15px' }}><label>Authorname</label><input type="text" value={selectedRow.authorname} onChange={(e) => setSelectedRow({...selectedRow, authorname: e.target.value})} style={{ width: '100%', padding: '8px' }} /></div>
                         <button onClick={handleSaveEdit} style={{ width: '100%', padding: '10px', backgroundColor: '#007bff', color: 'white', border: 'none' }}>수정</button>
                     </div>
                 </div>

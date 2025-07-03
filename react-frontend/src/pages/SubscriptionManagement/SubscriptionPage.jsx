@@ -330,9 +330,6 @@ const SubscriptionPage = () => {
                                     <th style={{ padding: '12px', textAlign: 'left' }}>구독 ID</th> {/* 구독 ID 컬럼 추가 */}
                                     <th style={{ padding: '12px', textAlign: 'left' }}>책 ID</th>
                                     <th style={{ padding: '12px', textAlign: 'left' }}>제목</th>
-                                    <th style={{ padding: '12px', textAlign: 'left' }}>상태</th>
-                                    <th style={{ padding: '12px', textAlign: 'left' }}>구독일</th>
-                                    <th style={{ padding: '12px', textAlign: 'left' }}>구독료</th>
                                     <th style={{ padding: '12px', textAlign: 'left' }}>베스트셀러</th>
                                     <th style={{ padding: '12px', textAlign: 'left' }}>액션</th>
                                 </tr>
@@ -352,9 +349,6 @@ const SubscriptionPage = () => {
                                                 {subscription.isBestSeller && <span style={{ color: 'red', fontWeight: 'bold', marginRight: '5px' }}>[BEST]</span>}
                                                 {subscription.title || `(제목 없음) ID: ${subscription.bookId}`} {/* 제목이 없을 경우 표시 */}
                                             </td>
-                                            <td style={{ padding: '12px' }}>{subscription.status}</td>
-                                            <td style={{ padding: '12px' }}>{subscription.subscriptionDate ? new Date(subscription.subscriptionDate).toLocaleDateString() : ''}</td>
-                                            <td style={{ padding: '12px' }}>{subscription.subscriptionFee}</td>
                                             <td style={{ padding: '12px' }}>{subscription.isBestSeller ? 'Yes' : 'No'}</td>
                                             <td style={{ padding: '12px' }}>
                                                 <button onClick={() => handleCancelSubscription(subscription.id)} style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}>

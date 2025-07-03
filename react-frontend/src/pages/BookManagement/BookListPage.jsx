@@ -9,7 +9,6 @@ const BookListPage = () => {
 
     // 컴포넌트 렌더링 시 currentSubscriberId 값을 콘솔에 출력하여 확인합니다.
     // 이 값이 변경될 때마다 콘솔에 새로운 ID가 출력되어야 합니다.
-    // eslint-disable-next-line no-console
     console.log('BookListPage 렌더링: currentSubscriberId 현재 값:', currentSubscriberId);
 
     useEffect(() => {
@@ -24,7 +23,6 @@ const BookListPage = () => {
             const bookList = response.data.content || []; 
             setBooks(bookList);
         } catch (error) {
-            // eslint-disable-next-line no-console
             console.error('책 목록 조회 실패:', error);
         }
     };
@@ -105,32 +103,37 @@ const BookListPage = () => {
             <h3>도서 목록</h3>
             <ul>
                 {books.map((book) => (
-                    <li key={book.id} style={{ border: '1px solid #ccc', margin: '10px', padding: '10px' }}>
-                        <h4>
-                            {/* ==============================================================
-                              [추가된 부분] 베스트셀러 표시와 함께 제목 옆에 Book ID 표시
-                              ============================================================== */}
-                            {book.isBestSeller && <span style={{ color: 'red', fontWeight: 'bold', marginRight: '5px' }}>[BEST]</span>}
-                            {book.title} (ID: {book.id}) {/* <-- 이 부분이 수정되었습니다. */}
-                            {/* ============================================================== */}
-                        </h4>
-                        <p>저자: {book.authorName} | 조회수: {book.views}</p>
+                    <li key={book.id} style={{ border: '1px solid #ccc', margin: '10px', padding: '10px', display: 'flex', alignItems: 'center' }}>
+                        {/* coverImageUrl이 있을 경우 이미지를 표시합니다. */}
+                        {book.coverImageUrl && (
+                            <img
+                                src={book.coverImageUrl}
+                                alt={`${book.title} 커버 이미지`}
+                                style={{ width: '80px', height: '120px', objectFit: 'cover', marginRight: '15px', borderRadius: '4px' }}
+                            />
+                        )}
+                        <div>
+                            <h4>
+                                {book.isBestSeller && <span style={{ color: 'red', fontWeight: 'bold', marginRight: '5px' }}>[BEST]</span>}
+                                {book.title} (ID: {book.id})
+                            </h4>
+                            <p>저자: {book.authorName} | 조회수: {book.views}</p>
 
-                        <Link
-                            // Link to 속성도 currentSubscriberId가 유효할 때만 올바른 URL을 생성
-                            to={currentSubscriberId === null || currentSubscriberId === '' ? '#' : `/books/${book.id}?subscriberId=${currentSubscriberId}`}
-                            state={{ bookSummary: book }}
-                        >
-                            {/* '열람하기' 버튼은 currentSubscriberId가 유효한 숫자일 때만 활성화 */}
-                            <button
-                                disabled={currentSubscriberId === null || currentSubscriberId === '' || isNaN(currentSubscriberId) || currentSubscriberId <= 0}
+                            <Link
+                                // Link to 속성도 currentSubscriberId가 유효할 때만 올바른 URL을 생성
+                                to={currentSubscriberId === null || currentSubscriberId === '' ? '#' : `/books/${book.id}?subscriberId=${currentSubscriberId}`}
+                                state={{ bookSummary: book }}
                             >
-                                열람하기
+                                <button
+                                    disabled={currentSubscriberId === null || currentSubscriberId === '' || isNaN(currentSubscriberId) || currentSubscriberId <= 0}
+                                >
+                                    열람하기
+                                </button>
+                            </Link>
+                            <button onClick={() => handleDeleteBook(book.id)} style={{ marginLeft: '10px', backgroundColor: '#dc3545', color: 'white', border: 'none', padding: '8px 15px', borderRadius: '4px', cursor: 'pointer' }}>
+                                삭제 (관리자용)
                             </button>
-                        </Link>
-                        <button onClick={() => handleDeleteBook(book.id)} style={{ marginLeft: '10px', backgroundColor: '#dc3545', color: 'white', border: 'none', padding: '8px 15px', borderRadius: '4px', cursor: 'pointer' }}>
-                            삭제 (관리자용)
-                        </button>
+                        </div>
                     </li>
                 ))}
             </ul>

@@ -4,18 +4,8 @@ import apiService from '../../api/apiService';
 import ApproveAuthor from '../../components/ApproveAuthor';
 import RejectAuthor from '../../components/RejectAuthor';
 
-// EbookStatisticsView 컴포넌트가 없으므로 임시로 빈 컴포넌트를 만듭니다.
-const EbookStatisticsView = ({ onSearch }) => (
-    <div style={{ padding: '15px', border: '1px solid #eee', marginBottom: '10px' }}>
-        검색 컴포넌트 (EbookStatisticsView)
-        {/* 검색 필드 및 버튼 추가 */}
-        <button onClick={() => onSearch({ /* 검색 조건 */ })}>Search</button>
-    </div>
-);
-
 // 사용자 역할을 확인하는 임시 함수. 실제로는 백엔드에서 사용자 정보를 가져와야 합니다.
 const hasRole = (role) => {
-    // 현재는 'Admin' 역할을 true로 가정합니다.
     return role === 'Admin';
 };
 
@@ -77,8 +67,6 @@ const AuthorGridPage = () => {
         setOpenDialog(true);
     };
 
-    // ==============================================================
-    // [수정된 부분] handleRegisterAuthor 함수: useGridLogic 대신 직접 API 호출
     const handleRegisterAuthor = async () => {
         try {
             // Command: 작가 등록 (특정 엔드포인트로 직접 호출)
@@ -93,7 +81,6 @@ const AuthorGridPage = () => {
             showSnackbar('작가 등록에 실패했습니다. 관리자에게 문의하세요.', 'error');
         }
     };
-    // ==============================================================
     
     const openEditDialog = () => {
         if (selectedRow) {
@@ -284,25 +271,33 @@ const AuthorGridPage = () => {
                 </div>
             )}
 
-            {editDialog && selectedRow && (
-                <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1000, width: '400px', backgroundColor: 'white', padding: '30px', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                        <h3 style={{ margin: 0 }}>Author 수정</h3>
-                        <button onClick={() => setEditDialog(false)}>&times;</button>
-                    </div>
-                    <div>
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ display: 'block', marginBottom: '5px' }}>Email</label>
-                            <input type="text" value={selectedRow.email} onChange={(e) => setSelectedRow({...selectedRow, email: e.target.value})} style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }} />
-                        </div>
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ display: 'block', marginBottom: '5px' }}>Name</label>
-                            <input type="text" value={selectedRow.name} onChange={(e) => setSelectedRow({...selectedRow, name: e.target.value})} style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }} />
-                        </div>
-                        <button onClick={handleSaveEdit} style={{ width: '100%', padding: '10px', backgroundColor: '#007bff', color: 'white', border: 'none' }}>수정</button>
-                    </div>
-                </div>
-            )}
+            {editDialog && selectedRow && (
+                <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1000, width: '400px', backgroundColor: 'white', padding: '30px', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                        <h3 style={{ margin: 0 }}>Author 수정</h3>
+                        <button onClick={() => setEditDialog(false)}>&times;</button>
+                    </div>
+                    <div>
+                        <div style={{ marginBottom: '15px' }}>
+                            <label style={{ display: 'block', marginBottom: '5px' }}>Email</label>
+                            <input type="text" value={selectedRow.email} onChange={(e) => setSelectedRow({...selectedRow, email: e.target.value})} style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }} />
+                        </div>
+                        <div style={{ marginBottom: '15px' }}>
+                            <label style={{ display: 'block', marginBottom: '5px' }}>Name</label>
+                            <input type="text" value={selectedRow.name} onChange={(e) => setSelectedRow({...selectedRow, name: e.target.value})} style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }} />
+                        </div>
+                        <div style={{ marginBottom: '15px' }}>
+                            <label style={{ display: 'block', marginBottom: '5px' }}>Detail</label>
+                            <input type="text" value={selectedRow.detail} onChange={(e) => setSelectedRow({...selectedRow, detail: e.target.value})} style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }} />
+                        </div>
+                        <div style={{ marginBottom: '15px' }}>
+                            <label style={{ display: 'block', marginBottom: '5px' }}>Portfolio</label>
+                            <input type="text" value={selectedRow.portfolio} onChange={(e) => setSelectedRow({...selectedRow, portfolio: e.target.value})} style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }} />
+                        </div>
+                        <button onClick={handleSaveEdit} style={{ width: '100%', padding: '10px', backgroundColor: '#007bff', color: 'white', border: 'none' }}>수정</button>
+                    </div>
+                </div>
+            )}
 
             {approveAuthorDialog && selectedRow && (
                 <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1000 }}>
