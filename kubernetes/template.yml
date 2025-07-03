@@ -25,11 +25,11 @@ spec:
           env:
             - name: _DATASOURCE_ADDRESS
               value: mysql-service
-            - name: _DATASOURCE_ADDRESS
+            - name: _DATASOURCE_TABLESPACE
               value: author_db
             - name: _DATASOURCE_USERNAME
               value: root
-            - name: MYSQL_ROOT_PASSWORD # application.yml에서 참조하는 환경 변수 이름
+            - name: MYSQL_ROOT_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: mysql-pass # MySQL 비밀번호가 저장된 Secret 이름
