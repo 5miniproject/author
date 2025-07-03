@@ -105,7 +105,7 @@ public class Publication {
                 byte[] coverImageBytes = aiService().generateCoverImage(publication.getTitle(), publication.getAuthorname(), plot, category);
 
                 // 3. 줄거리 pdf와 이미지 파일로 저장
-                String baseDir = "./files/";
+                String baseDir = "/files/";
                 String plotFileName = baseDir + "plotFile/" + publication.getId() + "_" + publication.getTitle() + "_plot.pdf";
                 String coverFileName = baseDir + "coverImage/" + publication.getId() + "_" + publication.getTitle() + "_cover.jpg";
                 String plotUrl = aiService().saveTextAsPdf(publication.getTitle(), publication.getAuthorname(), 

@@ -6,8 +6,10 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -269,8 +271,14 @@ public class OpenAiService {
             parentDir.mkdirs();
         }
 
-        try (PDDocument document = new PDDocument()) {
-            PDType0Font font = PDType0Font.load(document, new File("src/main/resources/NanumGothic.ttf"));
+        try (PDDocument document = new PDDocument();
+            InputStream fontStream = getClass().getClassLoader().getResourceAsStream("NanumGothic.ttf")) {
+
+            if (fontStream == null) {
+                throw new FileNotFoundException("Font file 'NanumGothic.ttf' not found in resources.");
+            }
+
+            PDType0Font font = PDType0Font.load(document, fontStream);
 
             float margin = 40;
             float normalFontSize = 12f;

@@ -323,6 +323,13 @@ spec:
               secretKeyRef:
                   name: service-secrets
                   key: OPENAI_API_KEY
+          volumeMounts:
+            - name: azure-volume
+              mountPath: /files
+      volumes:
+        - name: azure-volume
+          persistentVolumeClaim:
+            claimName: azurefile
 
 
 ---
