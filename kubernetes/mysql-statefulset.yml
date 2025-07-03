@@ -1,0 +1,104 @@
+# 1. MySQL Root 비밀번호를 저장할 Secret
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysql-pass
+type: Opaque # 일반 텍스트 데이터 (Base64 인코딩됨)
+stringData:
+  password: "secret" # 실제 사용 시에는 강력한 비밀번호로 변경하세요.
+
+---
+
+# 2. StatefulSet의 각 Pod에 대한 고유한 DNS 이름을 제공하는 Headless Service
+#    (ClusterIP: None으로 설정하여 로드 밸런싱 없이 각 Pod의 IP를 직접 노출)
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-headless
+  labels:
+    app: mysql
+spec:
+  ports:
+  - port: 3306
+    name: mysql
+  clusterIP: None # Headless Service임을 명시
+  selector:
+    app: mysql
+
+---
+
+# 3. 애플리케이션이 MySQL에 연결할 때 사용할 ClusterIP Service
+#    (안정적인 내부 IP 주소를 제공하여 MySQL Pod의 변경에 관계없이 연결 가능)
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-service
+  labels:
+    app: mysql
+spec:
+  ports:
+  - port: 3306
+    targetPort: 3306
+    protocol: TCP
+    name: mysql
+  selector:
+    app: mysql # 이 Service가 관리할 Pod를 선택하는 라벨 (StatefulSet의 Pod 라벨과 일치)
+  type: ClusterIP # 클러스터 내부에서만 접근 가능한 고정 IP
+
+---
+
+# 4. MySQL StatefulSet
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql
+spec:
+  selector:
+    matchLabels:
+      app: mysql # 이 StatefulSet이 관리할 Pod를 선택하는 라벨
+  serviceName: mysql-headless # Headless Service 이름과 일치해야 함
+  replicas: 1 # 단일 MySQL 인스턴스. 고가용성을 위해서는 MySQL 복제와 함께 2 이상으로 설정
+  template:
+    metadata:
+      labels:
+        app: mysql # Pod에 적용될 라벨
+    spec:
+      containers:
+      - name: mysql
+        image: mysql:8.0
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-pass # 위에서 정의한 Secret 이름
+              key: password    # Secret 내의 키
+        ports:
+        - containerPort: 3306
+          name: mysql
+        volumeMounts:
+        - name: mysql-persistent-storage
+          mountPath: /var/lib/mysql
+        livenessProbe:
+          exec:
+            command: ["mysqladmin", "ping", "-h", "localhost"]
+          initialDelaySeconds: 30 # Pod 시작 후 30초 대기
+          periodSeconds: 10       # 10초마다 체크
+          timeoutSeconds: 5       # 5초 내 응답 없으면 실패
+        readinessProbe: # MySQL이 연결을 받을 준비가 되었는지 확인
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - mysql -h 127.0.0.1 -u root -p"$MYSQL_ROOT_PASSWORD" -e "SELECT 1"
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+  volumeClaimTemplates: # 각 Pod에 대해 PVC를 동적으로 생성
+  - metadata:
+      name: mysql-persistent-storage # volumeMounts에서 참조하는 이름과 일치
+    spec:
+      accessModes: [ "ReadWriteOnce" ] # 단일 노드에서 읽기/쓰기 가능 (MySQL에 적합)
+      storageClassName: default # AKS 클러스터의 StorageClass 이름 (예: default, managed-premium)
+      resources:
+        requests:
+          storage: 1Gi

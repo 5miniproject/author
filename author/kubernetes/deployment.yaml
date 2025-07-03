@@ -20,6 +20,18 @@ spec:
           image: "a0018.azurecr.io/author:latest"
           ports:
             - containerPort: 8080
+          env:
+            - name: _DATASOURCE_ADDRESS
+              value: mysql-service
+            - name: _DATASOURCE_ADDRESS
+              value: author_db
+            - name: _DATASOURCE_USERNAME
+              value: root
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-pass
+                  key: password
           readinessProbe:
             httpGet:
               path: '/actuator/health'
@@ -36,10 +48,3 @@ spec:
             timeoutSeconds: 2
             periodSeconds: 5
             failureThreshold: 5
-          volumeMounts:
-            - name: azure-volume
-              mountPath: /files
-      volumes:
-        - name: azure-volume
-          persistentVolumeClaim:
-            claimName: azurefile
