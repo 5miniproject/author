@@ -419,9 +419,20 @@ spec:
             periodSeconds: 5
             failureThreshold: 5
           env:
-           - name: OPENAI_API_KEY
-             valueFrom:
-              secretKeyRef:
+            - name: _DATASOURCE_ADDRESS
+              value: mysql-service
+            - name: _DATASOURCE_TABLESPACE
+              value: serviceai_db
+            - name: _DATASOURCE_USERNAME
+              value: root
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-pass # MySQL 비밀번호가 저장된 Secret 이름
+                  key: password    # Secret 내의 키
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
                   name: service-secrets
                   key: OPENAI_API_KEY
           volumeMounts:
@@ -431,6 +442,7 @@ spec:
         - name: azure-volume
           persistentVolumeClaim:
             claimName: azurefile
+
 
 
 ---
