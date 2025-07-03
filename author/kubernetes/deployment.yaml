@@ -13,6 +13,7 @@ spec:
     metadata:
       labels:
         app: author
+        sidecar.istio.io/inject: "true"
     spec:
       containers:
         - name: author

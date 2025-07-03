@@ -15,6 +15,7 @@ spec:
     metadata:
       labels:
         app: author
+        sidecar.istio.io/inject: "true"
     spec:
       containers:
         - name: author
@@ -62,6 +63,7 @@ spec:
     metadata:
       labels:
         app: subscribe
+        sidecar.istio.io/inject: "true"
     spec:
       containers:
         - name: subscribe
@@ -109,6 +111,7 @@ spec:
     metadata:
       labels:
         app: gateway
+        sidecar.istio.io/inject: "true"
     spec:
       containers:
         - name: gateway
@@ -156,6 +159,7 @@ spec:
     metadata:
       labels:
         app: frontend
+        sidecar.istio.io/inject: "true"
     spec:
       containers:
         - name: frontend
@@ -203,6 +207,7 @@ spec:
     metadata:
       labels:
         app: point
+        sidecar.istio.io/inject: "true"
     spec:
       containers:
         - name: point
@@ -250,6 +255,7 @@ spec:
     metadata:
       labels:
         app: script
+        sidecar.istio.io/inject: "true"
     spec:
       containers:
         - name: script
@@ -297,6 +303,7 @@ spec:
     metadata:
       labels:
         app: library
+        sidecar.istio.io/inject: "true"
     spec:
       containers:
         - name: library
@@ -344,6 +351,7 @@ spec:
     metadata:
       labels:
         app: serviceai
+        sidecar.istio.io/inject: "true"
     spec:
       containers:
         - name: serviceai
@@ -398,6 +406,7 @@ spec:
     metadata:
       labels:
         app: frontend
+        sidecar.istio.io/inject: "true"
     spec:
       containers:
         - name: frontend
