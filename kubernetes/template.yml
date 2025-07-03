@@ -391,39 +391,6 @@ spec:
 
 ---
 
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: frontend
-  labels:
-    app: frontend
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: frontend
-  template:
-    metadata:
-      labels:
-        app: frontend
-        sidecar.istio.io/inject: "true"
-    spec:
-      containers:
-        - name: frontend
-          image: a0018.azurecr.io/frontend:latest
-          ports:
-            - containerPort: 8080
-          volumeMounts:
-            - name: azure-volume
-              mountPath: /files
-      volumes:
-        - name: azure-volume
-          persistentVolumeClaim:
-            claimName: azurefile
-
-
----
-
 
 apiVersion: v1
 kind: Service
