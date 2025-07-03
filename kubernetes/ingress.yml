@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: main-application-ingress # Ingress의 이름을 'main-application-ingress' 등으로 변경하는 것이 좋습니다.
+  name: main-application-ingress
   annotations:
     # HTTP 요청을 HTTPS로 강제 리다이렉션할지 여부를 설정합니다. 테스트 단계에서는 'false'로 두는 것이 편리합니다.
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
@@ -9,14 +9,10 @@ metadata:
     # 여러 Ingress Controller가 있는 경우 충돌을 피하기 위해 신중하게 사용해야 합니다.
     # 일반적으로는 생략하거나 특정 Ingress를 위한 클래스를 명시하는 것이 좋습니다.
     ingressclass.kubernetes.io/is-default-class: "true" 
-    # 웹소켓 통과를 위한 NGINX 버퍼 사이즈 설정 (필요시 추가)
-    # nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-    # nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
-    # nginx.ingress.kubernetes.io/proxy-buffering: "off"
 spec:
   ingressClassName: nginx
   rules:
-    - host: "" # 모든 호스트에 대해 적용. 실제 운영에서는 특정 도메인(예: example.com)을 명시하는 것이 일반적입니다.
+    - host: ""
       http:
         paths:
           - path: /
@@ -34,10 +30,10 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: gateway # 이 Service는 'gateway' Deployment에 연결된 ClusterIP Service여야 합니다.
+                name: gateway
                 port:
-                  number: 8080 # gateway Pod의 컨테이너 포트와 Service 포트가 일치해야 합니다.
-                            # AI 서비스가 직접 사진을 서빙하는 경우, 여기에 /files 규칙 추가
+                  number: 8080
+          # AI 서비스가 직접 사진을 서빙하는 경우, 여기에 /files 규칙 추가
           - path: /files # 또는 /generated-images
             pathType: Prefix
             backend:
