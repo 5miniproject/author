@@ -142,12 +142,12 @@ const PublicationGridPage = () => {
                                     <td style={{ padding: '12px' }}>{publication.subscriptionFee}</td>
                                     <td style={{ padding: '12px' }}>
                                         {publication.coverImageUrl ? (
-                                            <img src={`http://52.189.85.20${publication.coverImageUrl}`} alt="Cover" style={{ width: '50px', height: 'auto', borderRadius: '4px' }} />
+                                            <img src={`http://52.189.85.20${encodeURI(publication.coverImageUrl)}`} alt="Cover" style={{ width: '50px', height: 'auto', borderRadius: '4px' }} />
                                         ) : 'No Image'}
                                     </td>
                                     <td style={{ padding: '12px' }}>
                                         {publication.plotUrl ? (
-                                            <a href={`http://52.189.85.20${publication.plotUrl}`} target="_blank" rel="noopener noreferrer">Download PDF</a>
+                                            <a href={`http://52.189.85.20${encodeURI(publication.plotUrl)}`} target="_blank" rel="noopener noreferrer">Download PDF</a>
                                         ) : 'No Plot'}
                                     </td>
                                 </tr>
@@ -176,7 +176,11 @@ const PublicationGridPage = () => {
                     {selectedRow.coverImageUrl && (
                         <div style={{ marginTop: '20px', textAlign: 'center' }}>
                             <h4>생성된 표지 이미지</h4>
-                            <img src={`http://52.189.85.20${selectedRow.coverImageUrl}`} alt="Generated Cover" style={{ maxWidth: '300px', maxHeight: '300px', border: '1px solid #ddd', borderRadius: '8px' }} />
+                            <img
+                                src={`http://52.189.85.20${encodeURI(selectedRow.coverImageUrl)}`}
+                                alt="Generated Cover"
+                                style={{ maxWidth: '300px', maxHeight: '300px', border: '1px solid #ddd', borderRadius: '8px' }}
+                            />
                         </div>
                     )}
                     <button onClick={() => changeSelectedRow(null)} style={{ marginTop: '15px', padding: '5px 10px', backgroundColor: '#e9e9e9', border: '1px solid #ccc', borderRadius: '4px', cursor: 'pointer' }}>선택 해제</button>
